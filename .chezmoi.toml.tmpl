@@ -1,0 +1,17 @@
+{{- /* Per-machine chezmoi configuration template */ -}}
+{{- /* Generated on first `chezmoi init` */ -}}
+
+{{- $name := promptString "Full name" "박승호" -}}
+{{- $email := promptString "Email" "" -}}
+{{- $github := promptString "GitHub username" "0xOrOi0x" -}}
+{{- $machine := promptChoice "Machine type" (list "personal" "work") "personal" -}}
+
+[data]
+    name = {{ $name | quote }}
+    email = {{ $email | quote }}
+    github_user = {{ $github | quote }}
+    machine = {{ $machine | quote }}
+
+# Source directory: defaults to ~/.dotfiles when bootstrapped
+[sourceDir]
+    sourceDir = {{ env "DOTFILES_DIR" | default (joinPath .chezmoi.homeDir ".dotfiles") | quote }}

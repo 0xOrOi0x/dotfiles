@@ -1,0 +1,28 @@
+# AGENTS.md
+
+## 1. Project Overview (≤3 sentences)
+[One-line description, target users, tech stack]
+
+## 2. Build & Test
+- Install: `pnpm install`
+- Dev: `pnpm dev`
+- Test: `pnpm test`
+- Lint: `pnpm lint:fix`
+
+## 3. Code Standards
+- TypeScript strict mode
+- Prefer named exports
+
+## 4. Architectural Decisions (with rationale)
+- [Decision]: [Why]
+
+## 5. Security Gotchas
+- Never log secrets
+- env file changes require PR mention
+
+## 6. PR & Branch Conventions
+- Branches: `feat/`, `fix/`, `docs/`
+- 3-way AI review before merge
+
+## 7. Domain Vocabulary
+- [Term]: [Definition]

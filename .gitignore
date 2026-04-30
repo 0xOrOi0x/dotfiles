@@ -1,0 +1,20 @@
+# Local backups (created by bootstrap)
+.bootstrap-backup-*/
+.bootstrap-markers/
+
+# OS
+.DS_Store
+.AppleDouble
+._*
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# Secrets - NEVER commit
+.env
+.env.local
+*.pem
+*.key
+secrets/

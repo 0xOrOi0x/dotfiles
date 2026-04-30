@@ -1,0 +1,10 @@
+{
+  "model": "gemini-2.5-pro",
+  "context_window": 1048576,
+  "include_codebase_default": false,
+  "tools": {
+    "web_search": true,
+    "code_execution": true
+  },
+  "telemetry": false
+}

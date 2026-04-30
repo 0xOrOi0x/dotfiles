@@ -1,0 +1,35 @@
+# Atuin Configuration
+# Managed by chezmoi from 0xOrOi0x/dotfiles
+
+# Database (default)
+db_path = "~/.local/share/atuin/history.db"
+
+# Sync
+sync_address = "https://api.atuin.sh"
+sync_frequency = "10m"
+auto_sync = true
+
+# Search
+search_mode = "fuzzy"
+filter_mode = "global"
+filter_mode_shell_up_key_binding = "session"
+
+# UI
+style = "compact"
+inline_height = 20
+show_preview = true
+exit_mode = "return-original"
+
+# Stats
+stats.common_subcommands = ["cargo", "go", "git", "npm", "pnpm", "yarn", "docker"]
+
+# History
+history_filter = [
+    "^secret",
+    "^export ANTHROPIC_API_KEY",
+    "^export OPENAI_API_KEY",
+    "^export GEMINI_API_KEY"
+]
+
+# Keymap
+keymap_mode = "vim-insert"

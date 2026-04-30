@@ -1,0 +1,14 @@
+README.md
+LICENSE
+SETUP_INSTRUCTIONS.md
+.github/
+scripts/
+bootstrap.sh
+install
+Brewfile
+.chezmoiroot
+.chezmoiignore
+.chezmoi.toml.tmpl
+.chezmoidata.toml
+.gitignore
+.git/

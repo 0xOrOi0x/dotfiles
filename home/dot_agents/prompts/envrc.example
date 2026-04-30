@@ -1,0 +1,15 @@
+# .envrc.example — copy to .envrc in project root
+# Then run: direnv allow
+
+# Option 1: Plain env vars
+# export ANTHROPIC_API_KEY="sk-ant-..."
+# export OPENAI_API_KEY="sk-..."
+
+# Option 2: 1Password CLI (recommended)
+# Sign in once: op signin
+export ANTHROPIC_API_KEY="$(op read 'op://Private/Anthropic/api_key' 2>/dev/null)"
+export OPENAI_API_KEY="$(op read 'op://Private/OpenAI/api_key' 2>/dev/null)"
+export GEMINI_API_KEY="$(op read 'op://Private/Google/gemini_api_key' 2>/dev/null)"
+
+# Project-specific
+# export DATABASE_URL="$(op read 'op://Private/MyProject/database_url')"

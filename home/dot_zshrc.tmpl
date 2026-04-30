@@ -1,0 +1,235 @@
+{{/* ~/.zshrc — managed by chezmoi from 0xOrOi0x/dotfiles */ -}}
+# =============================================================================
+# .zshrc — Multi-Agent Dev Environment v3.1
+# Source: https://github.com/0xOrOi0x/dotfiles
+# Machine: {{ .machine }}
+# =============================================================================
+
+# ─── Homebrew (Apple Silicon path) ──────────────────────────────────────────
+[[ -f /opt/homebrew/bin/brew ]] && eval "$(/opt/homebrew/bin/brew shellenv)"
+[[ -f /usr/local/bin/brew     ]] && eval "$(/usr/local/bin/brew shellenv)"
+
+# ─── Welcome screen (interactive only) ──────────────────────────────────────
+[[ $- == *i* ]] && command -v fastfetch &>/dev/null && fastfetch
+
+# ─── Oh My Zsh ──────────────────────────────────────────────────────────────
+export ZSH="$HOME/.oh-my-zsh"
+ZSH_THEME=""    # Starship handles prompt
+plugins=(git docker kubectl)
+[[ -d "$ZSH" ]] && source "$ZSH/oh-my-zsh.sh"
+
+# ─── Starship ───────────────────────────────────────────────────────────────
+command -v starship &>/dev/null && eval "$(starship init zsh)"
+
+# ─── Zinit + plugins ────────────────────────────────────────────────────────
+ZINIT_HOME="$HOME/.local/share/zinit/zinit.git"
+if [[ -f "$ZINIT_HOME/zinit.zsh" ]]; then
+  source "$ZINIT_HOME/zinit.zsh"
+  autoload -Uz _zinit
+  (( ${+_comps} )) && _comps[zinit]=_zinit
+
+  zinit ice wait lucid; zinit light zdharma-continuum/fast-syntax-highlighting
+  zinit ice wait lucid; zinit light zsh-users/zsh-autosuggestions
+  zinit ice wait lucid; zinit light zsh-users/zsh-completions
+fi
+
+# ─── Atuin (encrypted shell history) ────────────────────────────────────────
+command -v atuin &>/dev/null && eval "$(atuin init zsh)"
+
+# ─── direnv (per-project env) ───────────────────────────────────────────────
+command -v direnv &>/dev/null && eval "$(direnv hook zsh)"
+
+# ─── mise (runtime version manager) ─────────────────────────────────────────
+command -v mise &>/dev/null && eval "$(mise activate zsh)"
+
+# ─── zoxide (smart cd) ──────────────────────────────────────────────────────
+command -v zoxide &>/dev/null && eval "$(zoxide init --cmd cd zsh)"
+
+# ─── fzf ────────────────────────────────────────────────────────────────────
+command -v fzf &>/dev/null && source <(fzf --zsh) 2>/dev/null
+
+# ─── navi (cheatsheet) ──────────────────────────────────────────────────────
+command -v navi &>/dev/null && eval "$(navi widget zsh)"
+
+# ─── SCM Breeze (excluded inside Claude Code) ───────────────────────────────
+if [[ -z "$CLAUDECODE" ]] && [[ -s "$HOME/.scm_breeze/scm_breeze.sh" ]]; then
+  source "$HOME/.scm_breeze/scm_breeze.sh"
+fi
+
+# =============================================================================
+# Aliases — Modern CLI Replacements
+# =============================================================================
+alias ls="lsd"
+alias ll="lsd -la"
+alias lt="lsd --tree"
+alias cat="bat"
+alias find="fd"
+alias grep="rg"
+alias top="btop"
+alias df="duf"
+alias du="dust"
+alias vim="nvim"
+alias vi="nvim"
+alias lg="lazygit"
+alias c="clear"
+alias ..="cd .."
+alias ...="cd ../.."
+alias rm="trash"
+alias agents-md='glow $(git rev-parse --show-toplevel)/AGENTS.md'
+
+# Claude Code headless build verification
+alias cc-check="claude -p 'Run tsc --noEmit, then eslint, then run all unit tests. Report any failures with file paths and line numbers.' --allowedTools 'Bash,Read,Grep' --output-format json > build-report.json && echo '✅ build-report.json generated'"
+
+# Dotfiles management shortcuts
+alias dot='cd ~/.dotfiles'
+alias dot-edit='chezmoi edit'
+alias dot-apply='chezmoi apply -v'
+alias dot-update='bash ~/.dotfiles/scripts/update.sh'
+alias dot-verify='bash ~/.dotfiles/scripts/verify.sh'
+
+# =============================================================================
+# Multi-Agent Helper Functions
+# =============================================================================
+export AGENTS_HOME="$HOME/.agents"
+export WORKTREE_ROOT="$HOME/Code/.worktrees"
+
+# 🎼 cockpit — auto-build 4-pane cockpit
+cockpit() {
+  local feature="${1:-default}"
+  local task="${2:-Implement feature}"
+  local root=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+  local wt="${WORKTREE_ROOT}/${feature}"
+
+  if [ ! -d "$wt" ]; then
+    # Auto-detect default branch (main/master/develop)
+    local default_branch
+    default_branch=$(git -C "$root" symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@')
+    [ -z "$default_branch" ] && default_branch=$(git -C "$root" branch --show-current 2>/dev/null)
+    [ -z "$default_branch" ] && default_branch="main"
+
+    git -C "$root" worktree add "$wt" -b "feat/${feature}" "$default_branch" 2>/dev/null || \
+      { echo "⚠️  worktree 생성 실패 (브랜치 충돌 가능). 기존 워크트리 그대로 진행"; }
+    [ -f "$root/.env" ] && cp "$root/.env" "$wt/"
+    [ -d "$root/node_modules" ] && ln -sfn "$root/node_modules" "$wt/node_modules"
+  fi
+
+  mkdir -p "$AGENTS_HOME/status"
+  cat > "$AGENTS_HOME/status/${feature}.md" <<STATUS
+# ${feature} — STATUS
+- started_at: $(date -Iseconds)
+- task: ${task}
+- progress: 0%
+
+## 🚧 In Progress
+- (initializing)
+
+## 🚫 Blockers
+- (none)
+STATUS
+
+  tmux new-session -d -s "agent-${feature}-claude"  -c "$wt" 2>/dev/null
+  tmux new-session -d -s "agent-${feature}-codex"   -c "$wt" 2>/dev/null
+  tmux new-session -d -s "agent-${feature}-gemini"  -c "$wt" 2>/dev/null
+
+  cat <<INFO
+🎼 Cockpit '${feature}' ready
+
+👉 Setup steps:
+   1) Cmd+D for vertical split (2 panes)
+   2) Cmd+Shift+D on each side (4 panes total)
+   3) Run in each pane:
+
+   pane 0 (top-left):     cd $root && claude       # 🎼 Conductor
+   pane 1 (top-right):    aclaude ${feature}
+   pane 2 (bottom-left):  acodex ${feature}
+   pane 3 (bottom-right): agemini ${feature}
+INFO
+}
+
+aclaude() { tmux attach -t "agent-${1}-claude"; }
+acodex()  { tmux attach -t "agent-${1}-codex"; }
+agemini() { tmux attach -t "agent-${1}-gemini"; }
+
+# 📊 status — show all worker progress
+status() {
+  if [ ! -d "$AGENTS_HOME/status" ] || [ -z "$(ls -A "$AGENTS_HOME/status" 2>/dev/null)" ]; then
+    echo "No active agents."
+    return
+  fi
+  for f in "$AGENTS_HOME"/status/*.md; do
+    bat --style=header --paging=never "$f"
+    echo ""
+  done
+}
+
+# 🤖 agents — fzf-jump to active sessions
+agents() {
+  local s
+  s=$(tmux ls 2>/dev/null | grep '^agent-' | fzf --height 40% | cut -d: -f1)
+  [ -n "$s" ] && tmux attach -t "$s"
+}
+
+# 🔍 review — 3-way consensus PR review
+review() {
+  local pr="${1:?Usage: review <PR#>}"
+  mkdir -p "$AGENTS_HOME/reviews"
+  echo "🔍 PR #${pr} 3-way review starting..."
+  ( gh pr diff "$pr" | claude -p "Review for architectural consistency. Output markdown." \
+      > "$AGENTS_HOME/reviews/claude-${pr}.md" ) &
+  ( gh pr diff "$pr" | codex exec "Review for code quality, security, performance" \
+      > "$AGENTS_HOME/reviews/codex-${pr}.md" ) &
+  ( gh pr diff "$pr" | gemini -p "Review for outdated APIs, library compat, side effects" \
+      > "$AGENTS_HOME/reviews/gemini-${pr}.md" ) &
+  wait
+  echo "✅ Done. View: glow $AGENTS_HOME/reviews/*-${pr}.md"
+}
+
+# 🚀 plan — Claude Plan Mode quick start
+plan() {
+  claude -p "Read AGENTS.md and create plan.md for: $*. Use Plan Mode."
+}
+
+# 🧹 cleanup-wt — remove merged worktree + sessions
+cleanup-wt() {
+  local f="${1:?Usage: cleanup-wt <feature>}"
+  tmux kill-session -t "agent-${f}-claude"  2>/dev/null
+  tmux kill-session -t "agent-${f}-codex"   2>/dev/null
+  tmux kill-session -t "agent-${f}-gemini"  2>/dev/null
+  git worktree remove "${WORKTREE_ROOT}/${f}" 2>/dev/null
+  rm -f "$AGENTS_HOME/status/${f}.md"
+  echo "🧹 ${f} cleaned"
+}
+
+# 🛠️ tools — fzf launcher
+tools() {
+  local cmds=(
+    "btop:🖥️  System monitor"
+    "lazygit:📦 Git UI"
+    "duf:💾 Disk usage"
+    "dust:📁 Folder size"
+    "fastfetch:ℹ️  System info"
+    "tokei:📊 Code stats"
+    "atuin search:🔍 History search"
+    "navi:📚 Cheatsheet"
+  )
+  local s
+  s=$(printf '%s\n' "${cmds[@]}" | fzf --delimiter=: --with-nth=2 --height=40% --reverse --prompt="Tool: ")
+  local cmd="${s%%:*}"
+  [[ -n "$cmd" ]] && eval "$cmd"
+}
+
+# =============================================================================
+# Initialize agent workspace + git delta on shell start
+# =============================================================================
+mkdir -p "$AGENTS_HOME"/{prompts,status,reviews,plans,audit} "$WORKTREE_ROOT"
+git config --global core.pager delta 2>/dev/null
+git config --global interactive.diffFilter "delta --color-only" 2>/dev/null
+git config --global delta.navigate true 2>/dev/null
+git config --global delta.side-by-side true 2>/dev/null
+
+{{- if eq .machine "work" }}
+# =============================================================================
+# Work-machine specific overrides
+# =============================================================================
+# Add work-only env vars or proxies here
+{{- end }}

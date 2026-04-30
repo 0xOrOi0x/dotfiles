@@ -1,0 +1,15 @@
+# Codex CLI Configuration
+# Managed by chezmoi from 0xOrOi0x/dotfiles
+
+[features]
+default_mode_request_user_input = true
+multi_agent = true
+multi_agent_v2 = true
+enable_fanout = true
+
+[providers.openai]
+model = "gpt-5"
+
+# AGENTS.md fallback names
+project_doc_fallback_filenames = ["TEAM_GUIDE.md", ".agents.md"]
+project_doc_max_bytes = 65536

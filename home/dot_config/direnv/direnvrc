@@ -1,0 +1,25 @@
+# direnv stdlib extensions
+# Managed by chezmoi from 0xOrOi0x/dotfiles
+
+# Use 1Password CLI to inject secrets
+# Usage in .envrc:  use_op
+use_op() {
+  if ! command -v op &>/dev/null; then
+    echo "1Password CLI not installed" >&2
+    return 1
+  fi
+  if ! op account list &>/dev/null; then
+    echo "Not signed in to 1Password. Run: op signin" >&2
+    return 1
+  fi
+}
+
+# Load .env file if exists (compatible with bash dotenv)
+use_env() {
+  if [ -f "$1" ]; then
+    set -o allexport
+    # shellcheck source=/dev/null
+    source "$1"
+    set +o allexport
+  fi
+}
