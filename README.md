@@ -3,6 +3,8 @@
 > **Multi-Agent Dev Environment** for macOS · 단 한 줄로 모든 환경 복원
 > Ghostty · tmux · Claude Code · Codex CLI · Gemini CLI · AeroSpace
 
+[![ShellCheck](https://img.shields.io/badge/ShellCheck-passing-brightgreen?logo=gnu-bash&logoColor=white)](scripts/pre-push-qa.sh)
+[![macOS Tested](https://img.shields.io/badge/macOS-tested-success?logo=apple&logoColor=white)](https://github.com/0xOrOi0x/dotfiles)
 [![macOS](https://img.shields.io/badge/macOS-15%2B-black?logo=apple)](https://www.apple.com/macos/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
