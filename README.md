@@ -270,7 +270,6 @@ MIT © 2026 [박승호 (Liam Park)](https://github.com/0xOrOi0x)
 
 ## 🙏 영감받은 곳
 
-- [DND 기술 블로그 — 2026 Mac 터미널 완벽 세팅](https://blog.dnd.ac/settings-mac-terminal-2026/)
 - [agents.md](https://agents.md) — AI 에이전트 인스트럭션 표준
 - [Anthropic 2026 Agentic Coding Trends](https://www.anthropic.com)
 
