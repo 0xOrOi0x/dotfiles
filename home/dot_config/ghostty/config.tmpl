@@ -1,5 +1,6 @@
+{{/* Ghostty config — managed by chezmoi v3.2 */ -}}
 # 👻 Ghostty — Multi-Agent Cockpit Edition
-# Managed by chezmoi from 0xOrOi0x/dotfiles
+# Machine: {{ .machine }} ({{ .profile }} profile)
 
 # ─── Theme ──────────────────────────────────────────────
 theme = Catppuccin Mocha
@@ -7,9 +8,17 @@ font-family = "Hack Nerd Font Mono"
 font-family = "Noto Sans CJK KR"
 font-size = 14
 
-# ─── Window ─────────────────────────────────────────────
+# ─── Window (machine-specific transparency) ─────────────
+{{ if eq .profile "full" -}}
+# Full profile: Liquid Glass UI - more transparent + heavier blur
+background-opacity = 0.85
+background-blur-radius = 30
+{{ else -}}
+# Lite profile: less transparent for performance + lower thermal
 background-opacity = 0.92
 background-blur-radius = 20
+{{- end }}
+
 palette = 8=#7f849c
 window-padding-x = 12
 window-padding-y = 10
@@ -26,8 +35,12 @@ mouse-hide-while-typing = true
 copy-on-select = true
 clipboard-paste-protection = true
 
-# ─── Scrollback ─────────────────────────────────────────
+# ─── Scrollback (more on full profile) ──────────────────
+{{ if eq .profile "full" -}}
+scrollback-limit = 5000000
+{{ else -}}
 scrollback-limit = 1000000
+{{- end }}
 
 # ─── macOS ──────────────────────────────────────────────
 macos-option-as-alt = true

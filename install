@@ -30,7 +30,7 @@ cat <<BANNER
 ${C_BOLD}
   ╭───────────────────────────────────────────────────────╮
   │   🪄  0xOrOi0x/dotfiles — One-Line Installer          │
-  │   Multi-Agent Dev Environment v3.1                    │
+  │   Multi-Agent Dev Environment v3.2                    │
   ╰───────────────────────────────────────────────────────╯
 ${C_RESET}
 BANNER

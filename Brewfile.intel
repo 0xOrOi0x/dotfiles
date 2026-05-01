@@ -1,0 +1,88 @@
+# =============================================================================
+# Brewfile.intel — Intel Mac compatible packages (auto-selected for x86_64)
+# -----------------------------------------------------------------------------
+# Used by: MacBook Pro 2019 (Intel i9), iMac Intel, etc.
+# Bootstrap auto-selects this when uname -m != arm64
+# =============================================================================
+
+tap "homebrew/bundle"
+tap "homebrew/services"
+tap "nikitabobko/tap"
+
+# === Shell & Terminal Core (identical) ===
+brew "zsh"
+brew "tmux"
+brew "starship"
+brew "zoxide"
+brew "atuin"
+brew "direnv"
+brew "mise"
+
+# === Modern CLI Replacements (identical, all Rust/Go) ===
+brew "lsd"
+brew "bat"
+brew "fd"
+brew "ripgrep"
+brew "fzf"
+brew "git-delta"
+brew "btop"
+brew "dust"
+brew "duf"
+brew "fastfetch"
+brew "neovim"
+brew "lazygit"
+brew "navi"
+brew "glow"
+brew "tokei"
+brew "hyperfine"
+brew "jless"
+brew "httpie"
+brew "gron"
+brew "jq"
+brew "yq"
+brew "watch"
+
+# === Git & GitHub ===
+brew "git"
+brew "gh"
+brew "git-lfs"
+brew "gnupg"
+
+# === AI Agents (identical) ===
+brew "gemini-cli"
+
+# === Dotfiles & Reproducibility ===
+brew "chezmoi"
+
+# === Documentation ===
+brew "marp-cli"
+brew "pandoc"
+brew "mermaid-cli"
+
+# === System Utilities ===
+brew "mas"
+brew "trash"
+brew "wget"
+brew "coreutils"
+brew "tree"
+
+# === Build (identical) ===
+brew "bun"
+brew "pnpm"
+brew "uv"
+
+# === GUI Apps (Intel-compatible only) ===
+cask "ghostty"                   # Universal Binary, Intel OK
+cask "aerospace"                 # Works on Intel too (slightly less stable)
+cask "raycast"                   # Universal
+cask "karabiner-elements"        # Universal
+cask "docker"                    # ⚠️ DIFFERENT: Docker Desktop instead of OrbStack
+cask "1password"
+cask "1password-cli"
+cask "bruno"
+cask "visual-studio-code"
+
+# === Fonts (identical) ===
+cask "font-hack-nerd-font"
+cask "font-jetbrains-mono-nerd-font"
+cask "font-noto-sans-cjk-kr"

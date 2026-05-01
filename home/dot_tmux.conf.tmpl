@@ -1,5 +1,6 @@
+{{/* tmux config — managed by chezmoi v3.2 */ -}}
 # tmux — Persistence Layer for Ghostty
-# Managed by chezmoi from 0xOrOi0x/dotfiles
+# Machine: {{ .machine }} ({{ .profile }} profile)
 
 unbind C-b
 set -g prefix C-Space
@@ -12,7 +13,14 @@ set -g base-index 1
 setw -g pane-base-index 1
 set -g renumber-windows on
 set -g escape-time 0
+
+# Machine-specific history limit
+{{ if eq .profile "full" -}}
+set -g history-limit 500000
+{{ else -}}
 set -g history-limit 100000
+{{- end }}
+
 set -g focus-events on
 
 # Vim navigation
@@ -31,19 +39,20 @@ bind A display-popup -E "glow $(git rev-parse --show-toplevel 2>/dev/null)/AGENT
 bind R display-popup -E "ls ~/.agents/reviews/ 2>/dev/null | fzf | xargs -I{} glow ~/.agents/reviews/{}"
 bind W display-popup -E "git worktree list | fzf | awk '{print \$1}' | xargs -I{} tmux send-keys 'cd {}' Enter"
 bind g display-popup -E -w 90% -h 90% "lazygit"
+bind I display-popup -E "echo 'Machine: {{ .machine }}' && echo 'Profile: {{ .profile }}' && echo 'Chip:    {{ .chip }}' && echo 'RAM:     {{ .ram_gb }}GB'"
 
 bind C-s setw synchronize-panes \; display "Sync: #{?pane_synchronized,ON,OFF}"
 bind r source-file ~/.tmux.conf \; display "🔁 Reloaded"
 
-# Status bar (Catppuccin Mocha)
+# Status bar (Catppuccin Mocha) with machine ID
 set -g status-style "bg=#1e1e2e,fg=#cdd6f4"
-set -g status-left-length 40
-set -g status-left "#[bg=#cba6f7,fg=#1e1e2e,bold] 󰊠 #S #[bg=#1e1e2e,fg=#cba6f7]"
+set -g status-left-length 50
+set -g status-left "#[bg=#cba6f7,fg=#1e1e2e,bold] 󰊠 #S #[bg=#1e1e2e,fg=#cba6f7] {{ if .is_apple_silicon }}🪶{{ else }}💪{{ end }} {{ .machine }} "
 set -g status-right "#[fg=#89b4fa]#(~/.tmux/scripts/agent-status.sh) #[fg=#a6e3a1]%H:%M "
 setw -g window-status-current-format "#[bg=#89b4fa,fg=#1e1e2e,bold] #I:#W "
 setw -g window-status-format "#[fg=#7f849c] #I:#W "
 
-# Plugins (TPM)
+# Plugins
 set -g @plugin 'tmux-plugins/tpm'
 set -g @plugin 'tmux-plugins/tmux-resurrect'
 set -g @plugin 'tmux-plugins/tmux-continuum'

@@ -1,17 +1,49 @@
 {{- /* Per-machine chezmoi configuration template */ -}}
-{{- /* Generated on first `chezmoi init` */ -}}
+{{- /* Auto-detects machine via scripts/machine-detect.sh */ -}}
+
+{{- $detected_machine := "" -}}
+{{- $detect_script := joinPath .chezmoi.workingTree "scripts" "machine-detect.sh" -}}
+{{- if stat $detect_script -}}
+{{- $detected_machine = output "bash" $detect_script "machine_id" | trim -}}
+{{- end -}}
+{{- if eq $detected_machine "" -}}
+{{-   $detected_machine = "personal" -}}
+{{- end -}}
+
+{{- $detected_arch := .chezmoi.arch -}}
+{{- $detected_chip := "" -}}
+{{- if stat $detect_script -}}
+{{- $detected_chip = output "bash" $detect_script "chip" | trim -}}
+{{- end -}}
+
+{{- $detected_ram := "" -}}
+{{- if stat $detect_script -}}
+{{- $detected_ram = output "bash" $detect_script "ram_gb" | trim -}}
+{{- end -}}
+
+{{- $detected_profile := "" -}}
+{{- if stat $detect_script -}}
+{{- $detected_profile = output "bash" $detect_script "profile" | trim -}}
+{{- end -}}
+
+{{- $detected_ai_concurrent := "2" -}}
+{{- if stat $detect_script -}}
+{{- $detected_ai_concurrent = output "bash" $detect_script "ai_concurrent" | trim -}}
+{{- end -}}
 
 {{- $name := promptString "Full name" "박승호" -}}
 {{- $email := promptString "Email" "" -}}
 {{- $github := promptString "GitHub username" "0xOrOi0x" -}}
-{{- $machine := promptChoice "Machine type" (list "personal" "work") "personal" -}}
+{{- $machine := promptString (printf "Machine ID (detected: %s)" $detected_machine) $detected_machine -}}
 
 [data]
     name = {{ $name | quote }}
     email = {{ $email | quote }}
     github_user = {{ $github | quote }}
     machine = {{ $machine | quote }}
-
-# Source directory: defaults to ~/.dotfiles when bootstrapped
-[sourceDir]
-    sourceDir = {{ env "DOTFILES_DIR" | default (joinPath .chezmoi.homeDir ".dotfiles") | quote }}
+    arch = {{ $detected_arch | quote }}
+    chip = {{ $detected_chip | quote }}
+    ram_gb = {{ $detected_ram | quote }}
+    profile = {{ $detected_profile | quote }}
+    ai_concurrent = {{ $detected_ai_concurrent | quote }}
+    is_apple_silicon = {{ eq $detected_arch "arm64" }}

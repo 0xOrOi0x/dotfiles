@@ -3,9 +3,11 @@ LICENSE
 SETUP_INSTRUCTIONS.md
 .github/
 scripts/
+docs/
 bootstrap.sh
 install
 Brewfile
+Brewfile.intel
 .chezmoiroot
 .chezmoiignore
 .chezmoi.toml.tmpl

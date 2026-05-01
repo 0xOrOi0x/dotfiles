@@ -103,7 +103,7 @@ print_banner() {
 
 ${C_MAGENTA}${C_BOLD}
   ╭───────────────────────────────────────────────────────╮
-  │   🚀 0xOrOi0x/dotfiles · Bootstrap v3.1               │
+  │   🚀 0xOrOi0x/dotfiles · Bootstrap v3.2               │
   │   Ghostty + tmux + Claude/Codex/Gemini + AeroSpace   │
   ╰───────────────────────────────────────────────────────╯
 ${C_RESET}
@@ -140,6 +140,24 @@ phase_check() {
 
   [[ -d "$DOTFILES_DIR" ]] || die "Dotfiles repo not found at $DOTFILES_DIR"
   ok "Dotfiles repo present"
+
+  # === Machine profile detection ===
+  if [[ -x "$DOTFILES_DIR/scripts/machine-detect.sh" ]]; then
+    local machine_id profile chip ram_gb
+    machine_id=$("$DOTFILES_DIR/scripts/machine-detect.sh" machine_id)
+    profile=$("$DOTFILES_DIR/scripts/machine-detect.sh" profile)
+    chip=$("$DOTFILES_DIR/scripts/machine-detect.sh" chip)
+    ram_gb=$("$DOTFILES_DIR/scripts/machine-detect.sh" ram_gb)
+
+    printf "\n${C_BOLD}━━━ Machine Profile ━━━${C_RESET}\n"
+    printf "  ${C_GREEN}🏷  ID:${C_RESET}      %s\n" "$machine_id"
+    printf "  ${C_GREEN}💻 Chip:${C_RESET}    %s\n" "$chip"
+    printf "  ${C_GREEN}🧠 RAM:${C_RESET}     %s GB\n" "$ram_gb"
+    printf "  ${C_GREEN}🎯 Profile:${C_RESET} %s\n" "$profile"
+
+    export DETECTED_MACHINE_ID="$machine_id"
+    export DETECTED_PROFILE="$profile"
+  fi
 }
 
 # =============================================================================
@@ -178,8 +196,21 @@ phase_homebrew() {
 # Phase 3: Brewfile install
 # =============================================================================
 phase_brewfile() {
-  log "Installing from Brewfile (10-20 min)..."
-  brew bundle install --file="$DOTFILES_DIR/Brewfile" --no-lock || \
+  # Auto-select Brewfile based on architecture
+  local brewfile="$DOTFILES_DIR/Brewfile"
+  local eta="10-20 min"
+
+  if [[ "$(uname -m)" != "arm64" ]] && [[ -f "$DOTFILES_DIR/Brewfile.intel" ]]; then
+    brewfile="$DOTFILES_DIR/Brewfile.intel"
+    eta="25-40 min on Intel"
+    log "Intel Mac detected → using Brewfile.intel"
+    log "Note: OrbStack replaced with Docker Desktop"
+  else
+    log "Apple Silicon → using Brewfile (full)"
+  fi
+
+  log "Installing from $(basename "$brewfile") (${eta})..."
+  brew bundle install --file="$brewfile" --no-lock || \
     warn "Some packages may have failed — review output above"
 }
 

@@ -1,0 +1,29 @@
+{{/* SSH config — managed by chezmoi (1Password SSH Agent) */ -}}
+# SSH Configuration
+# Machine: {{ .machine }}
+
+# Use 1Password SSH Agent for all hosts (universal)
+Host *
+  IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+  AddKeysToAgent yes
+  UseKeychain yes
+
+# GitHub
+Host github.com
+  HostName github.com
+  User git
+  PreferredAuthentications publickey
+
+{{ if eq .machine "pro-intel" -}}
+# Optional: enable home-server mode for this Intel Pro machine
+# (uncomment to allow access from air-m5 via Tailscale)
+# Host air-m5
+#   HostName <air-m5-tailscale-ip-or-hostname>
+#   User {{ .name | replace " " "" | lower }}
+{{ else -}}
+# Optional: connect to home-server (Intel Pro 2019)
+# (uncomment after enabling sshd on pro-intel)
+# Host pro-intel
+#   HostName <pro-intel-tailscale-hostname>
+#   User {{ .name | replace " " "" | lower }}
+{{- end }}

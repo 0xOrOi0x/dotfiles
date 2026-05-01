@@ -29,6 +29,7 @@ required_files=(
   "install"
   "bootstrap.sh"
   "Brewfile"
+  "Brewfile.intel"
   "README.md"
   "LICENSE"
   ".chezmoiroot"
@@ -36,17 +37,20 @@ required_files=(
   ".chezmoiignore"
   ".gitignore"
   "home/dot_zshrc.tmpl"
-  "home/dot_tmux.conf"
+  "home/dot_tmux.conf.tmpl"
   "home/dot_gitconfig.tmpl"
-  "home/dot_config/ghostty/config"
+  "home/dot_config/ghostty/config.tmpl"
   "home/dot_config/starship.toml"
   "home/dot_config/aerospace/aerospace.toml"
   "home/dot_claude/settings.json"
+  "home/private_dot_ssh/config.tmpl"
+  "scripts/machine-detect.sh"
   "scripts/verify.sh"
   "scripts/update.sh"
   "scripts/macos-defaults.sh"
-  ".github/workflows/shellcheck.yml"
-  ".github/workflows/macos-smoke-test.yml"
+  "scripts/enable-home-server.sh"
+  "docs/INTEL_MAC_GUIDE.md"
+  "docs/TWO_MACHINE_SETUP.md"
 )
 
 for f in "${required_files[@]}"; do
@@ -185,12 +189,13 @@ section "chezmoi structure"
 
 # Critical chezmoi naming
 chezmoi_rules=(
-  "home/dot_zshrc.tmpl:dot_ prefix → ~/.zshrc"
-  "home/dot_gitconfig.tmpl:dot_ + .tmpl"
-  "home/dot_tmux.conf:dot_ prefix → ~/.tmux.conf"
-  "home/dot_config/ghostty/config:nested config dir"
+  "home/dot_zshrc.tmpl:dot_ prefix + .tmpl → ~/.zshrc"
+  "home/dot_gitconfig.tmpl:dot_ + .tmpl → ~/.gitconfig"
+  "home/dot_tmux.conf.tmpl:dot_ + .tmpl → ~/.tmux.conf"
+  "home/dot_config/ghostty/config.tmpl:nested + .tmpl"
   "home/dot_claude/hooks/executable_secret-scan.sh:executable_ prefix"
   "home/dot_tmux/scripts/executable_agent-status.sh:executable_ prefix"
+  "home/private_dot_ssh/config.tmpl:private_ prefix → 600 perms"
 )
 for rule in "${chezmoi_rules[@]}"; do
   IFS=: read -r path desc <<< "$rule"
@@ -198,6 +203,41 @@ for rule in "${chezmoi_rules[@]}"; do
     ok "$desc"
   else
     bad "$path (chezmoi naming issue)"
+  fi
+done
+
+
+# ─── 11. Machine detection script test ──────────────────────────────────────
+section "Machine detection script"
+if [[ -x "scripts/machine-detect.sh" ]]; then
+  for cmd in machine_id arch profile ai_concurrent; do
+    if bash scripts/machine-detect.sh "$cmd" &>/dev/null; then
+      ok "machine-detect.sh $cmd"
+    else
+      bad "machine-detect.sh $cmd failed"
+    fi
+  done
+else
+  bad "scripts/machine-detect.sh not executable"
+fi
+
+# ─── 12. v3.2 specific: profile-aware files ─────────────────────────────────
+section "v3.2 profile-aware files"
+v32_files=(
+  "Brewfile.intel"
+  "scripts/machine-detect.sh"
+  "scripts/enable-home-server.sh"
+  "home/dot_tmux.conf.tmpl"
+  "home/dot_config/ghostty/config.tmpl"
+  "home/private_dot_ssh/config.tmpl"
+  "docs/INTEL_MAC_GUIDE.md"
+  "docs/TWO_MACHINE_SETUP.md"
+)
+for f in "${v32_files[@]}"; do
+  if [[ -f "$f" ]]; then
+    ok "$f"
+  else
+    bad "$f (missing v3.2 file)"
   fi
 done
 

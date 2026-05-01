@@ -1,13 +1,21 @@
-{{/* ~/.zshrc — managed by chezmoi from 0xOrOi0x/dotfiles */ -}}
+{{/* ~/.zshrc — managed by chezmoi from 0xOrOi0x/dotfiles v3.2 */ -}}
 # =============================================================================
-# .zshrc — Multi-Agent Dev Environment v3.1
-# Source: https://github.com/0xOrOi0x/dotfiles
-# Machine: {{ .machine }}
+# .zshrc — Multi-Agent Dev Environment v3.2
+# Source:  https://github.com/0xOrOi0x/dotfiles
+# Machine: {{ .machine }} ({{ .chip }}, {{ .ram_gb }}GB, {{ .profile }} profile)
+# Arch:    {{ .arch }}
 # =============================================================================
 
-# ─── Homebrew (Apple Silicon path) ──────────────────────────────────────────
+# ─── Homebrew (auto-detect arch) ────────────────────────────────────────────
 [[ -f /opt/homebrew/bin/brew ]] && eval "$(/opt/homebrew/bin/brew shellenv)"
 [[ -f /usr/local/bin/brew     ]] && eval "$(/usr/local/bin/brew shellenv)"
+
+{{ if not .is_apple_silicon -}}
+# ─── Intel Mac specific paths ───────────────────────────────────────────────
+# Docker Desktop CLI (replaces OrbStack on Intel)
+[[ -d /Applications/Docker.app ]] && \
+  export PATH="/Applications/Docker.app/Contents/Resources/bin:$PATH"
+{{- end }}
 
 # ─── Welcome screen (interactive only) ──────────────────────────────────────
 [[ $- == *i* ]] && command -v fastfetch &>/dev/null && fastfetch
@@ -33,28 +41,46 @@ if [[ -f "$ZINIT_HOME/zinit.zsh" ]]; then
   zinit ice wait lucid; zinit light zsh-users/zsh-completions
 fi
 
-# ─── Atuin (encrypted shell history) ────────────────────────────────────────
+# ─── Atuin ──────────────────────────────────────────────────────────────────
 command -v atuin &>/dev/null && eval "$(atuin init zsh)"
 
-# ─── direnv (per-project env) ───────────────────────────────────────────────
+# ─── direnv ─────────────────────────────────────────────────────────────────
 command -v direnv &>/dev/null && eval "$(direnv hook zsh)"
 
-# ─── mise (runtime version manager) ─────────────────────────────────────────
+# ─── mise ───────────────────────────────────────────────────────────────────
 command -v mise &>/dev/null && eval "$(mise activate zsh)"
 
-# ─── zoxide (smart cd) ──────────────────────────────────────────────────────
+# ─── zoxide ─────────────────────────────────────────────────────────────────
 command -v zoxide &>/dev/null && eval "$(zoxide init --cmd cd zsh)"
 
 # ─── fzf ────────────────────────────────────────────────────────────────────
 command -v fzf &>/dev/null && source <(fzf --zsh) 2>/dev/null
 
-# ─── navi (cheatsheet) ──────────────────────────────────────────────────────
+# ─── navi ───────────────────────────────────────────────────────────────────
 command -v navi &>/dev/null && eval "$(navi widget zsh)"
+
+# ─── 1Password SSH Agent ────────────────────────────────────────────────────
+if [[ -S "$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock" ]]; then
+  export SSH_AUTH_SOCK="$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+fi
 
 # ─── SCM Breeze (excluded inside Claude Code) ───────────────────────────────
 if [[ -z "$CLAUDECODE" ]] && [[ -s "$HOME/.scm_breeze/scm_breeze.sh" ]]; then
   source "$HOME/.scm_breeze/scm_breeze.sh"
 fi
+
+# =============================================================================
+# Machine Profile (set by chezmoi)
+# =============================================================================
+export DOTFILES_MACHINE="{{ .machine }}"
+export DOTFILES_CHIP="{{ .chip }}"
+export DOTFILES_RAM_GB="{{ .ram_gb }}"
+export DOTFILES_PROFILE="{{ .profile }}"
+export DOTFILES_ARCH="{{ .arch }}"
+
+# AI agent concurrent limit (auto-detected from RAM)
+export CLAUDE_MAX_CONCURRENT={{ .ai_concurrent }}
+export CODEX_MAX_CONCURRENT={{ .ai_concurrent }}
 
 # =============================================================================
 # Aliases — Modern CLI Replacements
@@ -77,15 +103,22 @@ alias ...="cd ../.."
 alias rm="trash"
 alias agents-md='glow $(git rev-parse --show-toplevel)/AGENTS.md'
 
-# Claude Code headless build verification
 alias cc-check="claude -p 'Run tsc --noEmit, then eslint, then run all unit tests. Report any failures with file paths and line numbers.' --allowedTools 'Bash,Read,Grep' --output-format json > build-report.json && echo '✅ build-report.json generated'"
 
-# Dotfiles management shortcuts
 alias dot='cd ~/.dotfiles'
 alias dot-edit='chezmoi edit'
 alias dot-apply='chezmoi apply -v'
 alias dot-update='bash ~/.dotfiles/scripts/update.sh'
 alias dot-verify='bash ~/.dotfiles/scripts/verify.sh'
+
+{{ if eq .profile "full" -}}
+# ─── 🪶 FULL profile aliases ───────────────────────────────────────────────
+alias plan='claude -p "Read AGENTS.md and create plan.md. Use Plan Mode."'
+{{ else -}}
+# ─── 💪 LITE profile aliases (Intel / low RAM) ─────────────────────────────
+alias plan='claude -p "Read AGENTS.md and create plan.md. Use Plan Mode. Implementation OUT OF SCOPE."'
+alias review-light='gh pr diff $1 | claude -p "Quick architectural review only, brief feedback."'
+{{- end }}
 
 # =============================================================================
 # Multi-Agent Helper Functions
@@ -93,22 +126,30 @@ alias dot-verify='bash ~/.dotfiles/scripts/verify.sh'
 export AGENTS_HOME="$HOME/.agents"
 export WORKTREE_ROOT="$HOME/Code/.worktrees"
 
-# 🎼 cockpit — auto-build 4-pane cockpit
+# 🎼 cockpit
 cockpit() {
   local feature="${1:-default}"
   local task="${2:-Implement feature}"
   local root=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
   local wt="${WORKTREE_ROOT}/${feature}"
 
+{{ if not .is_apple_silicon }}  # Intel warning
+  if [ "$DOTFILES_PROFILE" = "lite" ]; then
+    echo "⚠️  Running cockpit on lite profile (${DOTFILES_MACHINE})."
+    echo "   This may stress your machine. Recommended: AC adapter + monitor with sysmon."
+    echo "   Continue? (Ctrl+C to abort, Enter to proceed)"
+    read -r
+  fi
+{{ end }}
+
   if [ ! -d "$wt" ]; then
-    # Auto-detect default branch (main/master/develop)
     local default_branch
     default_branch=$(git -C "$root" symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@')
     [ -z "$default_branch" ] && default_branch=$(git -C "$root" branch --show-current 2>/dev/null)
     [ -z "$default_branch" ] && default_branch="main"
 
     git -C "$root" worktree add "$wt" -b "feat/${feature}" "$default_branch" 2>/dev/null || \
-      { echo "⚠️  worktree 생성 실패 (브랜치 충돌 가능). 기존 워크트리 그대로 진행"; }
+      { echo "⚠️  Worktree creation failed. Continuing with existing..."; }
     [ -f "$root/.env" ] && cp "$root/.env" "$wt/"
     [ -d "$root/node_modules" ] && ln -sfn "$root/node_modules" "$wt/node_modules"
   fi
@@ -116,6 +157,7 @@ cockpit() {
   mkdir -p "$AGENTS_HOME/status"
   cat > "$AGENTS_HOME/status/${feature}.md" <<STATUS
 # ${feature} — STATUS
+- machine: ${DOTFILES_MACHINE}
 - started_at: $(date -Iseconds)
 - task: ${task}
 - progress: 0%
@@ -129,20 +171,32 @@ STATUS
 
   tmux new-session -d -s "agent-${feature}-claude"  -c "$wt" 2>/dev/null
   tmux new-session -d -s "agent-${feature}-codex"   -c "$wt" 2>/dev/null
+{{ if eq .profile "full" -}}
   tmux new-session -d -s "agent-${feature}-gemini"  -c "$wt" 2>/dev/null
+{{- end }}
 
   cat <<INFO
-🎼 Cockpit '${feature}' ready
+🎼 Cockpit '${feature}' ready (machine: ${DOTFILES_MACHINE})
 
 👉 Setup steps:
-   1) Cmd+D for vertical split (2 panes)
+   1) Cmd+D for vertical split
+{{ if eq .profile "full" -}}
    2) Cmd+Shift+D on each side (4 panes total)
    3) Run in each pane:
 
-   pane 0 (top-left):     cd $root && claude       # 🎼 Conductor
-   pane 1 (top-right):    aclaude ${feature}
-   pane 2 (bottom-left):  acodex ${feature}
-   pane 3 (bottom-right): agemini ${feature}
+   pane 0: cd $root && claude       # 🎼 Conductor
+   pane 1: aclaude ${feature}
+   pane 2: acodex ${feature}
+   pane 3: agemini ${feature}
+{{ else -}}
+   2) Cmd+Shift+D once (3 panes total — lite profile)
+   3) Run in each pane:
+
+   pane 0: cd $root && claude       # 🎼 Conductor
+   pane 1: aclaude ${feature}
+   pane 2: acodex ${feature}
+   (Gemini omitted on lite profile — use 'plan' for research instead)
+{{- end }}
 INFO
 }
 
@@ -150,10 +204,10 @@ aclaude() { tmux attach -t "agent-${1}-claude"; }
 acodex()  { tmux attach -t "agent-${1}-codex"; }
 agemini() { tmux attach -t "agent-${1}-gemini"; }
 
-# 📊 status — show all worker progress
+# 📊 status
 status() {
   if [ ! -d "$AGENTS_HOME/status" ] || [ -z "$(ls -A "$AGENTS_HOME/status" 2>/dev/null)" ]; then
-    echo "No active agents."
+    echo "No active agents on ${DOTFILES_MACHINE}."
     return
   fi
   for f in "$AGENTS_HOME"/status/*.md; do
@@ -162,14 +216,15 @@ status() {
   done
 }
 
-# 🤖 agents — fzf-jump to active sessions
+# 🤖 agents fzf
 agents() {
   local s
   s=$(tmux ls 2>/dev/null | grep '^agent-' | fzf --height 40% | cut -d: -f1)
   [ -n "$s" ] && tmux attach -t "$s"
 }
 
-# 🔍 review — 3-way consensus PR review
+{{ if eq .profile "full" -}}
+# 🔍 review (full profile): 3-way consensus
 review() {
   local pr="${1:?Usage: review <PR#>}"
   mkdir -p "$AGENTS_HOME/reviews"
@@ -183,13 +238,25 @@ review() {
   wait
   echo "✅ Done. View: glow $AGENTS_HOME/reviews/*-${pr}.md"
 }
+{{ else -}}
+# 🔍 review (lite profile): single-agent only
+review() {
+  local pr="${1:?Usage: review <PR#>}"
+  echo "⚠️  Lite profile: using single-agent review (Claude only)."
+  echo "   For 3-way consensus, run on a full-profile machine."
+  mkdir -p "$AGENTS_HOME/reviews"
+  gh pr diff "$pr" | claude -p "Comprehensive review: architecture, code quality, security, side effects." \
+      > "$AGENTS_HOME/reviews/claude-${pr}.md"
+  echo "✅ Done. View: glow $AGENTS_HOME/reviews/claude-${pr}.md"
+}
+{{- end }}
 
-# 🚀 plan — Claude Plan Mode quick start
+# 🚀 plan
 plan() {
   claude -p "Read AGENTS.md and create plan.md for: $*. Use Plan Mode."
 }
 
-# 🧹 cleanup-wt — remove merged worktree + sessions
+# 🧹 cleanup-wt
 cleanup-wt() {
   local f="${1:?Usage: cleanup-wt <feature>}"
   tmux kill-session -t "agent-${f}-claude"  2>/dev/null
@@ -200,7 +267,7 @@ cleanup-wt() {
   echo "🧹 ${f} cleaned"
 }
 
-# 🛠️ tools — fzf launcher
+# 🛠️ tools fzf
 tools() {
   local cmds=(
     "btop:🖥️  System monitor"
@@ -211,6 +278,8 @@ tools() {
     "tokei:📊 Code stats"
     "atuin search:🔍 History search"
     "navi:📚 Cheatsheet"
+    "dot-info:🏷  Machine profile"
+    "sysmon:🌡  Resource monitor"
   )
   local s
   s=$(printf '%s\n' "${cmds[@]}" | fzf --delimiter=: --with-nth=2 --height=40% --reverse --prompt="Tool: ")
@@ -219,17 +288,71 @@ tools() {
 }
 
 # =============================================================================
-# Initialize agent workspace + git delta on shell start
+# 🆕 dot-info — Machine profile at a glance
+# =============================================================================
+dot-info() {
+  cat <<INFO
+{{ if .is_apple_silicon }}🪶{{ else }}💪{{ end }} Machine: ${DOTFILES_MACHINE}
+   ├─ Chip:      ${DOTFILES_CHIP}
+   ├─ Arch:      ${DOTFILES_ARCH}
+   ├─ RAM:       ${DOTFILES_RAM_GB} GB
+   ├─ macOS:     $(sw_vers -productVersion)
+   └─ Profile:   ${DOTFILES_PROFILE}
+
+🤖 AI agents:    ${CLAUDE_MAX_CONCURRENT} concurrent max
+{{ if .is_apple_silicon -}}
+📦 Brewfile:     Brewfile (Apple Silicon)
+🐳 Container:    OrbStack
+🪟 Window mgr:   AeroSpace (full)
+{{ else -}}
+📦 Brewfile:     Brewfile.intel
+🐳 Container:    Docker Desktop
+🪟 Window mgr:   AeroSpace (Intel mode)
+{{ end -}}
+🚀 Active agents: $(ls "$AGENTS_HOME/status"/*.md 2>/dev/null | wc -l | tr -d ' ')
+
+💡 Run 'sysmon' for resource usage
+INFO
+}
+
+# =============================================================================
+# 🆕 sysmon — Resource monitor
+# =============================================================================
+sysmon() {
+  local mem_used mem_pct active_agents power_source page_size pages_active
+
+  page_size=$(pagesize 2>/dev/null || echo 16384)
+  pages_active=$(vm_stat | awk '/Pages active/{print $3}' | tr -d '.')
+  mem_used=$(( (pages_active * page_size) / 1024 / 1024 / 1024 ))
+  mem_pct=$(( mem_used * 100 / DOTFILES_RAM_GB ))
+
+  active_agents=$(tmux ls 2>/dev/null | grep -c '^agent-' || echo 0)
+
+  if pmset -g batt 2>/dev/null | grep -q 'AC Power'; then
+    power_source="AC connected ⚡"
+  else
+    power_source="Battery 🔋"
+  fi
+
+  cat <<MON
+🌡  System Monitor (${DOTFILES_MACHINE})
+   🧠 Memory:        ${mem_used} / ${DOTFILES_RAM_GB} GB (${mem_pct}%)
+   🤖 Active agents: ${active_agents}
+   ⚡ Power:         ${power_source}
+{{ if not .is_apple_silicon }}
+⚠️  Intel-specific tips:
+   - Keep AC adapter connected for multi-agent work
+   - If active_agents > 2: monitor with 'btop' for thermal throttling
+   - 'macmon' (3rd party) gives detailed temp/fan readings
+{{- end }}
+MON
+}
+
+# =============================================================================
+# Initialize on shell start
 # =============================================================================
 mkdir -p "$AGENTS_HOME"/{prompts,status,reviews,plans,audit} "$WORKTREE_ROOT"
 git config --global core.pager delta 2>/dev/null
 git config --global interactive.diffFilter "delta --color-only" 2>/dev/null
 git config --global delta.navigate true 2>/dev/null
 git config --global delta.side-by-side true 2>/dev/null
-
-{{- if eq .machine "work" }}
-# =============================================================================
-# Work-machine specific overrides
-# =============================================================================
-# Add work-only env vars or proxies here
-{{- end }}
