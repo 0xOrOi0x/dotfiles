@@ -1,15 +1,12 @@
 # =============================================================================
-# Brewfile.intel — Intel Mac compatible packages (auto-selected for x86_64)
-# -----------------------------------------------------------------------------
-# Used by: MacBook Pro 2019 (Intel i9), iMac Intel, etc.
-# Bootstrap auto-selects this when uname -m != arm64
+# Brewfile.intel — Intel Mac OSS-only (auto-selected for x86_64)
 # =============================================================================
 
 tap "homebrew/bundle"
 tap "homebrew/services"
 tap "nikitabobko/tap"
 
-# === Shell & Terminal Core (identical) ===
+# === Shell & Terminal Core ===
 brew "zsh"
 brew "tmux"
 brew "starship"
@@ -18,7 +15,7 @@ brew "atuin"
 brew "direnv"
 brew "mise"
 
-# === Modern CLI Replacements (identical, all Rust/Go) ===
+# === Modern CLI ===
 brew "lsd"
 brew "bat"
 brew "fd"
@@ -48,10 +45,10 @@ brew "gh"
 brew "git-lfs"
 brew "gnupg"
 
-# === AI Agents (identical) ===
-brew "gemini-cli"
+# === Secrets & SSH ===
+brew "bitwarden-cli"             # OSS replacement for op
 
-# === Dotfiles & Reproducibility ===
+# === Dotfiles ===
 brew "chezmoi"
 
 # === Documentation ===
@@ -59,30 +56,33 @@ brew "marp-cli"
 brew "pandoc"
 brew "mermaid-cli"
 
-# === System Utilities ===
+# === Containers (OSS, no Docker Desktop) ===
+brew "docker"
+brew "docker-compose"
+brew "colima"                    # OSS Docker runtime
+
+# === System ===
 brew "mas"
 brew "trash"
 brew "wget"
 brew "coreutils"
 brew "tree"
 
-# === Build (identical) ===
-brew "bun"
+# === Build (no bun on Intel) ===
 brew "pnpm"
 brew "uv"
 
-# === GUI Apps (Intel-compatible only) ===
-cask "ghostty"                   # Universal Binary, Intel OK
-cask "aerospace"                 # Works on Intel too (slightly less stable)
-cask "raycast"                   # Universal
-cask "karabiner-elements"        # Universal
-cask "docker"                    # ⚠️ DIFFERENT: Docker Desktop instead of OrbStack
-cask "1password"
-cask "1password-cli"
-cask "bruno"
-cask "visual-studio-code"
+# === GUI Apps (OSS) ===
+cask "ghostty"
+cask "aerospace"
+cask "alfred"                    # Freeware launcher
+cask "hammerspoon"               # OSS scripting
+cask "karabiner-elements"
+cask "bitwarden"                 # OSS password manager
+cask "hoppscotch"                # OSS API client
+cask "visual-studio-code"        # User choice (kept)
 
-# === Fonts (identical) ===
+# === Fonts ===
 cask "font-hack-nerd-font"
 cask "font-jetbrains-mono-nerd-font"
 cask "font-noto-sans-cjk-kr"

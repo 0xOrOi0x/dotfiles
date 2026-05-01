@@ -1,15 +1,34 @@
 # 🚀 dotfiles
 
-> **Multi-Agent Dev Environment** for macOS · Single-line setup
+> **100% OSS Multi-Agent Dev Environment** for macOS · Single-line setup
 > Auto-detects Apple Silicon (M1~M5+) **and** Intel Macs
 > Ghostty · tmux · Claude Code · Codex CLI · Gemini CLI · AeroSpace
 
 [![ShellCheck](https://img.shields.io/badge/ShellCheck-passing-brightgreen?logo=gnu-bash&logoColor=white)](scripts/pre-push-qa.sh)
 [![macOS Tested](https://img.shields.io/badge/macOS-tested-success?logo=apple&logoColor=white)](https://github.com/0xOrOi0x/dotfiles)
 [![macOS](https://img.shields.io/badge/macOS-13%2B-black?logo=apple)](https://www.apple.com/macos/)
+[![100% OSS](https://img.shields.io/badge/100%25-OSS-success)](docs/OSS_ALTERNATIVES.md)
 [![Apple Silicon](https://img.shields.io/badge/Apple%20Silicon-✓-success)](https://en.wikipedia.org/wiki/Apple_silicon)
 [![Intel Mac](https://img.shields.io/badge/Intel%20Mac-✓-success)](docs/INTEL_MAC_GUIDE.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+---
+
+## 🆓 100% OSS 약속
+
+이 dotfiles는 **모든 도구가 OSS 또는 진정한 freeware**입니다.
+
+| 카테고리 | 도구 | 라이선스 |
+|:---|:---|:---:|
+| 비밀번호 관리 | **Bitwarden** | GPL-3 |
+| 런처 | **Hammerspoon** + **Alfred** (free) | MIT/Freeware |
+| 컨테이너 | **Colima** + Docker CLI | MIT/Apache-2.0 |
+| API 클라이언트 | **Hoppscotch** | MIT |
+| 윈도우 매니저 | **AeroSpace** | MIT |
+| 키보드 | **Karabiner-Elements** | Public Domain |
+| 터미널 | **Ghostty** | MIT |
+
+> ⚠️ AI 에이전트 (Claude/Codex/Gemini)는 사용자의 자체 구독을 사용하며, dotfiles 자체는 어떤 유료 서비스에도 의존하지 않습니다.
 
 ---
 
@@ -27,82 +46,70 @@ sh -c "$(curl -fsSL https://raw.githubusercontent.com/0xOrOi0x/dotfiles/main/ins
 | 💪 MacBook Pro 2019 (Intel i9 16GB) | `pro-intel` profile=`lite`, AI=2 concurrent |
 | 🪶 MacBook Pro M3 Max (36GB) | `pro-m3` profile=`full`, AI=4 concurrent |
 | 🪶 Mac mini M4 (16GB) | `mini-m4` profile=`full`, AI=4 concurrent |
-| ... | 모든 Mac 자동 감지 |
 
 설치 시간:
 - Apple Silicon: **~22분**
 - Intel: **~50분**
 
----
-
-## 🎯 자동 적용되는 머신별 최적화
-
-```mermaid
-flowchart TB
-    Start[bash install] --> Detect[uname -m + sysctl<br/>자동 감지]
-    Detect --> Branch{어떤 머신?}
-
-    Branch -->|Apple Silicon<br/>16GB+| Full[Full Profile]
-    Branch -->|Apple Silicon<br/>8GB| Bal[Balanced Profile]
-    Branch -->|Intel| Lite[Lite Profile]
-
-    Full --> F1[Brewfile<br/>OrbStack<br/>4 AI agents<br/>3-way consensus<br/>500K tmux history<br/>Liquid Glass UI]
-    Bal --> B1[Brewfile<br/>OrbStack<br/>3 AI agents<br/>3-way enabled<br/>200K tmux history]
-    Lite --> L1[Brewfile.intel<br/>Docker Desktop<br/>2 AI agents<br/>Single-agent review<br/>100K tmux history<br/>Heat warnings]
-
-    classDef ms fill:#a6e3a1,stroke:#16a34a,color:#1e1e2e
-    classDef intel fill:#fab387,stroke:#ea580c,color:#1e1e2e
-    classDef start fill:#cba6f7,stroke:#7c3aed,color:#1e1e2e
-    class Start,Detect start
-    class Full,Bal,F1,B1 ms
-    class Lite,L1 intel
-```
+자동 적용:
+- ✅ proprietary 도구 자동 제거 (1Password, Raycast, Bruno, Docker Desktop, OrbStack)
+- ✅ OSS 대체 도구 자동 설치 (Bitwarden, Hammerspoon, Alfred, Hoppscotch, Colima)
+- ✅ 머신별 차등 설정 (full/lite profile)
 
 ---
 
 ## 📦 설치되는 것들
 
 <details>
-<summary><b>🐚 Shell & Terminal</b> (펼치기)</summary>
+<summary><b>🐚 Shell & Terminal</b></summary>
 
-- **[Ghostty](https://ghostty.org)** — GPU-accelerated terminal (Universal binary)
-- **tmux** with resurrect/continuum — persistent sessions
-- **[Starship](https://starship.rs)** — Rust prompt (Catppuccin Mocha)
-- **Oh My Zsh** + **Zinit** — plugin manager
-- **[Atuin](https://atuin.sh)** — encrypted shell history sync
-- **direnv** + **mise** — env + runtime management
+- **Ghostty** (MIT) — GPU-accelerated terminal
+- **tmux** with resurrect/continuum (ISC)
+- **Starship** (ISC) — Rust prompt
+- **Oh My Zsh** + **Zinit** (MIT)
+- **Atuin** (MIT) — encrypted shell history sync
+- **direnv** + **mise** (MIT)
 </details>
 
 <details>
-<summary><b>🛠️ Modern CLI (20+ tools)</b></summary>
+<summary><b>🛠️ Modern CLI (20+ tools, all OSS)</b></summary>
 
 `lsd` `bat` `fd` `ripgrep` `fzf` `zoxide` `lazygit` `delta` `glow` `btop` `tokei` `hyperfine` `jless` `httpie` `gron` `jq` `yq` `navi` `marp-cli` `pandoc` `mermaid-cli`
 </details>
 
 <details>
-<summary><b>🤖 AI Coding Agents</b></summary>
+<summary><b>🤖 AI Coding Agents (사용자 구독 필요)</b></summary>
 
-- **Claude Code** (Anthropic) — Plan Mode + Subagents + Hooks
-- **Codex CLI** (OpenAI) — multi_agent_v2
-- **Gemini CLI** (Google) — 1M context
+- **Claude Code** — Plan Mode + Subagents + Hooks
+- **Codex CLI** — multi_agent_v2
+- **Gemini CLI** — 1M context (free tier 1,000/day)
 - **OMC plugin** — multi-agent workflow modes
 </details>
 
 <details>
-<summary><b>🪟 Window Management</b></summary>
+<summary><b>🔐 Security (100% OSS)</b></summary>
 
-- **AeroSpace** — i3-style tiling (Apple Silicon optimized, Intel compatible)
-- **Karabiner-Elements** — Caps Lock → Hyper Key
-- **Raycast** — Spotlight + AI launcher
+- **Bitwarden** (GPL-3) — password manager + SSH key storage
+- **Bitwarden CLI** (`bw`) — replaces 1Password's `op`
+- **standard ssh-agent** — replaces 1Password SSH Agent
+- **GnuPG** (GPL-3) — encryption
 </details>
 
 <details>
-<summary><b>🔐 Security & Productivity</b></summary>
+<summary><b>🪟 Window & Productivity (100% OSS)</b></summary>
 
-- **1Password CLI + SSH Agent** — secure key + secret management
-- **OrbStack** (Apple Silicon) / **Docker Desktop** (Intel) — containers
-- **chezmoi** — declarative dotfiles
-- **Bruno** — git-friendly API testing
+- **AeroSpace** (MIT) — i3-style tiling
+- **Hammerspoon** (MIT) — Lua scripting (replaces Raycast)
+- **Alfred** (free tier) — launcher
+- **Karabiner-Elements** (Public Domain) — Hyper Key
+</details>
+
+<details>
+<summary><b>🐳 Containers (100% OSS)</b></summary>
+
+- **Colima** (MIT) — replaces Docker Desktop
+- **Docker CLI** (Apache-2.0)
+- **Docker Compose** (Apache-2.0)
 </details>
 
 ---
@@ -120,23 +127,26 @@ dot-info
 claude          # Anthropic
 codex login     # OpenAI
 gemini          # Google
+gh auth login   # GitHub
 
-# 4. tmux 플러그인
+# 4. Bitwarden 로그인 (1Password 대체)
+bw login your@email.com
+bw-unlock       # 세션 잠금해제 helper
+
+# 5. Colima 컨테이너 런타임 시작
+colima start
+
+# 6. tmux 플러그인
 tmux            # then Ctrl+Space → Shift+I
 
-# 5. Atuin 동기화
+# 7. Atuin 동기화
 atuin register -u <USER> -e <EMAIL>     # 첫 머신
 atuin login -u <USER>                   # 다른 머신
-# ⚠️ 암호화 키 1Password에 저장!
 
-# 6. 권한 부여
-# 시스템 설정 → 손쉬운 사용 → AeroSpace, Karabiner, Raycast
+# 8. macOS 권한
+# 시스템 설정 → 손쉬운 사용 → AeroSpace, Karabiner, Hammerspoon, Alfred
 
-# 7. 1Password SSH Agent
-# 1Password 앱 → Settings → Developer → Use SSH Agent
-op signin
-
-# 8. 검증
+# 9. 검증
 dot-verify
 ```
 
@@ -151,70 +161,64 @@ status                          # all worker progress
 agents                          # fzf jump to active sessions
 review <PR>                     # 3-way consensus (full) / single-agent (lite)
 plan "<idea>"                   # Claude Plan Mode
-cc-check                        # headless build verification
-cleanup-wt <feature>            # cleanup worktree
+
+# 🔐 Bitwarden (replaces op)
+bw-unlock                       # 세션 잠금해제
+bw-get <item>                   # 비밀번호 가져오기
+bw-field <item> <field>         # 커스텀 필드
 
 # 📜 Dotfiles
 dot                             # cd ~/.dotfiles
-dot-info                        # 머신 프로필 표시
-dot-edit <file>                 # chezmoi edit
-dot-apply                       # chezmoi apply
-dot-update                      # full update (repo + brew + AI)
-dot-verify                      # health check
-
-# 🌡 System
-sysmon                          # resource monitor (Intel especially)
-tools                           # fzf launcher
+dot-info                        # 머신 프로필
+dot-verify                      # 헬스체크
+dot-update                      # 업데이트
 ```
+
+### Hammerspoon Hyper Key (Caps Lock)
+
+| 단축키 | 동작 |
+|:---|:---|
+| `Hyper+G` | Ghostty |
+| `Hyper+B` | Browser |
+| `Hyper+C` | VS Code |
+| `Hyper+V` | Bitwarden |
+| `Hyper+H` | Hoppscotch |
+| `Hyper+←/→/↑/↓` | Window halves |
+| `Hyper+Return` | Maximize |
+| `Hyper+Space` | Center |
+| `Hyper+L` | Lock screen |
+| `Hyper+R` | Reload Hammerspoon |
 
 ### Ghostty
 - `Cmd+D` / `Cmd+Shift+D` — split
-- `Cmd+Alt+arrows` — navigate panes
-- `Cmd+Shift+Enter` — zoom
+- `Cmd+Alt+arrows` — navigate
 - `Cmd+1~5` — tabs
 
 ### tmux (Prefix = `Ctrl+Space`)
-- `Prefix+S` — STATUS popup
-- `Prefix+A` — AGENTS.md popup
-- `Prefix+R` — review results
-- `Prefix+W` — worktree jump
-- `Prefix+G` — lazygit popup
-- `Prefix+I` — info popup (machine ID)
+- `Prefix+S/A/R/W/G/I` — popups
 
-### AeroSpace (`Alt` = Option)
+### AeroSpace (`Alt`)
 - `Alt+1~5` — workspaces
 - `Alt+H/J/K/L` — focus
-- `Alt+Shift+1~5` — move window
-- `Alt+/` — layout toggle
+- `Alt+/` — layout
 
 ---
 
-## 🖥️ Two-Machine Setup
+## 🆓 OSS Migration Notes
 
-이 dotfiles는 **2대 이상의 Mac을 동기화**하도록 설계되었습니다:
+전 버전(v3.2 이하)에서 사용된 proprietary 도구들은 자동으로 제거됩니다:
 
-```mermaid
-flowchart LR
-    A[🪶 air-m5] <--> Sync[Atuin · GitHub · 1Password]
-    B[💪 pro-intel] <--> Sync
-```
+| 제거 (proprietary) | 대체 (OSS) |
+|:---|:---|
+| 1Password | **Bitwarden** (GPL-3) |
+| 1Password CLI (`op`) | **Bitwarden CLI** (`bw`, GPL-3) |
+| 1Password SSH Agent | **standard ssh-agent** |
+| Raycast | **Hammerspoon** (MIT) + **Alfred** (free) |
+| Bruno | **Hoppscotch** (MIT) |
+| Docker Desktop | **Colima** (MIT) + Docker CLI (Apache-2.0) |
+| OrbStack | **Colima** (MIT) |
 
-자세한 가이드: [`docs/TWO_MACHINE_SETUP.md`](docs/TWO_MACHINE_SETUP.md)
-
-### Sync Layers
-
-1. **dotfiles** — `chezmoi` + GitHub
-2. **Shell history** — Atuin (E2E encrypted)
-3. **Secrets** — 1Password (SSH keys + API keys)
-4. **Code** — Git + GitHub
-
-### Optional: Home Server Mode
-
-Intel Mac을 항상 켜둔 홈 서버로 변환 (Tailscale + sshd):
-
-```bash
-bash ~/.dotfiles/scripts/enable-home-server.sh
-```
+자세한 내용: [`docs/OSS_ALTERNATIVES.md`](docs/OSS_ALTERNATIVES.md)
 
 ---
 
@@ -222,43 +226,24 @@ bash ~/.dotfiles/scripts/enable-home-server.sh
 
 ```
 ┌──────────────────────────────────────────────────┐
-│ L7  AeroSpace (workspaces 1-5)                   │
+│ L7  AeroSpace (workspaces 1-5) [MIT]            │
 ├──────────────────────────────────────────────────┤
-│ L6  Ghostty (GPU, profile-tuned transparency)    │
+│ L6  Ghostty (GPU-accelerated) [MIT]              │
 ├──────────────────────────────────────────────────┤
-│ L5  tmux (persistent) + Atuin (history sync)     │
+│ L5  tmux + Atuin [ISC + MIT]                     │
 ├──────────────────────────────────────────────────┤
-│ L4  zsh + Oh My Zsh + Zinit + Starship           │
+│ L4  zsh + Oh My Zsh + Zinit + Starship [MIT/ISC]│
 ├──────────────────────────────────────────────────┤
-│ L3  Modern CLI (20+ tools)                       │
+│ L3  Modern CLI (20+ OSS tools)                   │
 ├──────────────────────────────────────────────────┤
-│ L2  Claude · Codex · Gemini (auto-tuned count)   │
+│ L2  Claude · Codex · Gemini (사용자 구독)        │
 ├──────────────────────────────────────────────────┤
-│ L1  1Password SSH Agent · direnv · gnupg         │
+│ L1  ssh-agent + Bitwarden + GPG [OSS]            │
 ├──────────────────────────────────────────────────┤
-│ L0  Homebrew · chezmoi · mise                    │
+│ L0  Homebrew + chezmoi + mise [OSS]              │
 ├──────────────────────────────────────────────────┤
-│ Auto-Detect: machine-detect.sh → arch/RAM/profile│
+│ Auto-Detect: machine-detect.sh                   │
 └──────────────────────────────────────────────────┘
-```
-
----
-
-## 🔄 일상 운영
-
-```bash
-# 매일 아침 (자동 동기화)
-open -a Ghostty            # tmux-continuum 자동 복원
-status                     # 어제 진행률 확인
-
-# 매주 월요일 (5분)
-dot-update                 # 모든 도구 업데이트
-
-# 새 머신 셋업 (30분)
-sh -c "$(curl -fsSL https://raw.githubusercontent.com/0xOrOi0x/dotfiles/main/install)"
-atuin login                # 히스토리 복원
-op signin                  # 1Password
-# 끝.
 ```
 
 ---
@@ -267,38 +252,29 @@ op signin                  # 1Password
 
 ```
 dotfiles/
-├── install                       # 한 줄 진입점
-├── bootstrap.sh                  # 메인 설치 (10 phases, machine-aware)
-├── Brewfile                      # Apple Silicon
-├── Brewfile.intel                # Intel Mac (auto-selected)
-├── .chezmoiroot                  # → home/
-├── .chezmoi.toml.tmpl            # 머신 자동 감지
-├── home/                         # chezmoi-managed dotfiles
-│   ├── dot_zshrc.tmpl            # 프로필별 함수 분기
-│   ├── dot_tmux.conf.tmpl        # 히스토리 차등
+├── install                    # 한 줄 진입점
+├── bootstrap.sh               # 메인 설치 (10 phases, OSS-aware)
+├── Brewfile                   # Apple Silicon (100% OSS)
+├── Brewfile.intel             # Intel Mac (100% OSS)
+├── home/                      # chezmoi-managed dotfiles
+│   ├── dot_zshrc.tmpl
+│   ├── dot_tmux.conf.tmpl
 │   ├── dot_gitconfig.tmpl
 │   ├── dot_config/
-│   │   ├── ghostty/config.tmpl   # 투명도 차등 (Liquid Glass for full)
-│   │   ├── starship.toml
-│   │   ├── aerospace/aerospace.toml
-│   │   ├── karabiner/karabiner.json
-│   │   ├── atuin/config.toml
-│   │   └── direnv/direnvrc
-│   ├── dot_claude/
-│   ├── dot_codex/
-│   └── private_dot_ssh/config.tmpl  # 1Password SSH Agent
+│   │   ├── ghostty/config.tmpl
+│   │   └── ...
+│   ├── dot_hammerspoon/init.lua    # Raycast 대체
+│   └── private_dot_ssh/config.tmpl  # 표준 ssh-agent
 ├── scripts/
-│   ├── machine-detect.sh         # 🆕 자동 감지
-│   ├── verify.sh                 # 🆕 머신 프로필 표시
+│   ├── machine-detect.sh
+│   ├── verify.sh
 │   ├── update.sh
 │   ├── nuke.sh
-│   ├── macos-defaults.sh
-│   ├── pre-push-qa.sh
-│   ├── post-push-verify.sh
-│   └── enable-home-server.sh     # 🆕 Tailscale opt-in
+│   └── enable-home-server.sh
 ├── docs/
-│   ├── INTEL_MAC_GUIDE.md        # 🆕
-│   └── TWO_MACHINE_SETUP.md      # 🆕
+│   ├── INTEL_MAC_GUIDE.md
+│   ├── TWO_MACHINE_SETUP.md
+│   └── OSS_ALTERNATIVES.md
 └── README.md
 ```
 
@@ -306,29 +282,11 @@ dotfiles/
 
 ## 🛡️ 보안
 
-- **시크릿 절대 commit 금지** — `.gitignore`에 `.env`, `*.pem`, `*.key` 등록됨
-- **1Password SSH Agent** — 키가 vault에 보관, 머신 간 자동 동기화
-- **direnv** — 프로젝트별 시크릿을 1Password에서 동적 로드
+- **시크릿 절대 commit 금지** — `.gitignore` 보호
+- **Bitwarden** — 비밀번호 + SSH 키 (GPL-3, self-host 가능)
+- **standard ssh-agent** — 표준 OpenSSH 도구
 - **Atuin history filter** — API 키 패턴 자동 필터링
-- **Claude Code hook** — 비밀키 패턴 자동 차단
-
----
-
-## 🐛 트러블슈팅
-
-| 증상 | 해결 |
-|:---|:---|
-| `command not found: brew` | `eval "$(/opt/homebrew/bin/brew shellenv)"` (또는 `/usr/local/bin`) |
-| `cockpit` 함수 없음 | `exec zsh` |
-| AeroSpace 동작 X | 시스템 설정 → 손쉬운 사용 |
-| 한글 깨짐 | Ghostty config의 두 번째 `font-family` 확인 |
-| Intel에서 발열 | `sysmon` 실행 → `dot-update` |
-| Brewfile 잘못 선택됨 | `bash bootstrap.sh --reset && bash bootstrap.sh` |
-| 머신 프로필 잘못됨 | `chezmoi init --source ~/.dotfiles` 재실행 |
-
-자세한 헬스체크: `dot-verify`
-
-Intel Mac 전용 가이드: [`docs/INTEL_MAC_GUIDE.md`](docs/INTEL_MAC_GUIDE.md)
+- **Claude Code hook** — 비밀키 자동 차단
 
 ---
 
@@ -338,11 +296,4 @@ MIT © 2026 [박승호 (Liam Park)](https://github.com/0xOrOi0x)
 
 ---
 
-## 🙏 영감
-
-- [DND 기술 블로그 — 2026 Mac 터미널 완벽 세팅](https://blog.dnd.ac/settings-mac-terminal-2026/)
-- [agents.md](https://agents.md) — AI 에이전트 인스트럭션 표준
-
----
-
-> *"Two machines, one command, zero friction."*
+> *"Two machines, one command, zero proprietary lock-in."*

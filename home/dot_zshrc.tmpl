@@ -59,10 +59,41 @@ command -v fzf &>/dev/null && source <(fzf --zsh) 2>/dev/null
 # ─── navi ───────────────────────────────────────────────────────────────────
 command -v navi &>/dev/null && eval "$(navi widget zsh)"
 
-# ─── 1Password SSH Agent ────────────────────────────────────────────────────
-if [[ -S "$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock" ]]; then
-  export SSH_AUTH_SOCK="$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+# ─── ssh-agent (OSS standard, replaces 1Password SSH Agent) ────────────────
+if [ -z "$SSH_AUTH_SOCK" ] && command -v ssh-agent &>/dev/null; then
+  eval "$(ssh-agent -s)" > /dev/null 2>&1
+  # Auto-add default key if exists
+  [[ -f "$HOME/.ssh/id_ed25519" ]] && ssh-add --apple-use-keychain "$HOME/.ssh/id_ed25519" 2>/dev/null
 fi
+
+# ─── Bitwarden CLI (OSS, replaces 1Password CLI 'op') ──────────────────────
+# Quick unlock: bw-unlock
+bw-unlock() {
+  if command -v bw &>/dev/null; then
+    export BW_SESSION=$(bw unlock --raw)
+    if [ -n "$BW_SESSION" ]; then
+      echo "✅ Bitwarden vault unlocked"
+    else
+      echo "❌ Unlock failed"
+      return 1
+    fi
+  else
+    echo "❌ Bitwarden CLI not installed (brew install bitwarden-cli)"
+    return 1
+  fi
+}
+
+# Quick get password: bw-get <item-name>
+bw-get() {
+  [ -z "$BW_SESSION" ] && bw-unlock
+  bw get password "$1"
+}
+
+# Quick get field (e.g., api_key)
+bw-field() {
+  [ -z "$BW_SESSION" ] && bw-unlock
+  bw get item "$1" | jq -r ".fields[] | select(.name==\"$2\") | .value"
+}
 
 # ─── SCM Breeze (excluded inside Claude Code) ───────────────────────────────
 if [[ -z "$CLAUDECODE" ]] && [[ -s "$HOME/.scm_breeze/scm_breeze.sh" ]]; then

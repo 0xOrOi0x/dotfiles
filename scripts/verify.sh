@@ -79,7 +79,7 @@ check brew; check git; check zsh; check tmux; check starship
 
 echo "── Modern CLI ──"
 check lsd; check bat; check ripgrep rg; check fd; check fzf
-check zoxide; check lazygit; check delta git-delta; check glow; check jq
+check zoxide; check lazygit; check delta; check glow; check jq
 
 echo "── AI Agents ──"
 check "Claude Code" claude
@@ -87,21 +87,18 @@ check "Codex CLI" codex
 check "Gemini CLI" gemini
 
 echo "── Persistence & Secrets ──"
-check atuin; check direnv; check mise; check chezmoi; check op
+check atuin; check direnv; check mise; check chezmoi; check bw
 
 echo "── GUI Apps ──"
 check_app Ghostty
 check_app AeroSpace
-check_app Raycast
+check_app Hammerspoon
 check_app Karabiner-Elements
-check_app 1Password
+check_app Bitwarden
 
-# Profile-specific app
-if [[ "${ARCH:-}" == "arm64" ]]; then
-  check_app OrbStack
-else
-  check_app Docker
-fi
+# Container runtime — Colima (OSS, both arch)
+check colima
+check docker
 
 echo "── Config files ──"
 check_file "$HOME/.zshrc" "~/.zshrc"
@@ -110,7 +107,7 @@ check_file "$HOME/.config/ghostty/config" "Ghostty config"
 check_file "$HOME/.config/starship.toml" "Starship config"
 check_file "$HOME/.config/aerospace/aerospace.toml" "AeroSpace config"
 check_file "$HOME/.claude/settings.json" "Claude Code settings"
-check_file "$HOME/.ssh/config" "SSH config (1Password agent)"
+check_file "$HOME/.ssh/config" "SSH config (ssh-agent)"
 
 echo "── Multi-agent helper functions ──"
 for fn in cockpit aclaude acodex agemini status agents review plan cleanup-wt tools dot-info sysmon; do

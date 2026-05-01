@@ -41,7 +41,7 @@ Usage: bash bootstrap.sh [options]
 Options:
   --dry-run        Simulate without installing
   --skip <phase>   Skip specific phase
-                   (xcode-clt|homebrew|brewfile|ohmyzsh|zinit-tpm|
+                   (xcode-clt|homebrew|oss-cleanup|brewfile|ohmyzsh|
                     scm-breeze|ai-agents|chezmoi|macos-defaults)
   --reset          Clear progress markers (start from scratch)
   -h, --help       Show this help
@@ -103,7 +103,7 @@ print_banner() {
 
 ${C_MAGENTA}${C_BOLD}
   ╭───────────────────────────────────────────────────────╮
-  │   🚀 0xOrOi0x/dotfiles · Bootstrap v3.2               │
+  │   🚀 0xOrOi0x/dotfiles · Bootstrap v3.3               │
   │   Ghostty + tmux + Claude/Codex/Gemini + AeroSpace   │
   ╰───────────────────────────────────────────────────────╯
 ${C_RESET}
@@ -190,6 +190,92 @@ phase_homebrew() {
     echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> "$HOME/.zprofile"
     eval "$(/opt/homebrew/bin/brew shellenv)"
   fi
+}
+
+
+# =============================================================================
+# Phase 2.5: OSS Cleanup — Remove proprietary tools (idempotent)
+# =============================================================================
+phase_oss_cleanup() {
+  log "Removing proprietary tools (1Password, Raycast)..."
+
+  # 1Password
+  if [[ -d /Applications/1Password.app ]] || command -v op &>/dev/null; then
+    log "  Uninstalling 1Password..."
+    brew uninstall --cask 1password 2>/dev/null || true
+    brew uninstall --cask 1password-cli 2>/dev/null || true
+    brew uninstall 1password-cli 2>/dev/null || true
+
+    # Remove all 1Password data
+    rm -rf "$HOME/.config/op"            "$HOME/Library/Group Containers/2BUA8C4S2C.com.1password"            "$HOME/Library/Application Support/1Password"            "$HOME/Library/Caches/com.1password"*            "$HOME/Library/Preferences/com.1password"*            "$HOME/Library/Saved Application State/com.1password.1password.savedState" 2>/dev/null
+
+    # Remove launch agents/daemons
+    rm -f "$HOME/Library/LaunchAgents/com.1password"* 2>/dev/null
+    sudo rm -f /Library/LaunchAgents/com.1password* 2>/dev/null
+    sudo rm -f /Library/LaunchDaemons/com.1password* 2>/dev/null
+
+    ok "  1Password removed"
+  else
+    ok "  1Password not present"
+  fi
+
+  # Raycast
+  if [[ -d /Applications/Raycast.app ]]; then
+    log "  Uninstalling Raycast..."
+    brew uninstall --cask raycast 2>/dev/null || true
+
+    # Remove all Raycast data
+    rm -rf "$HOME/.config/raycast"            "$HOME/Library/Application Support/com.raycast.macos"            "$HOME/Library/Caches/com.raycast.macos"            "$HOME/Library/Preferences/com.raycast.macos.plist"            "$HOME/Library/Saved Application State/com.raycast.macos.savedState"            "$HOME/Library/HTTPStorages/com.raycast.macos"            "$HOME/Library/WebKit/com.raycast.macos" 2>/dev/null
+
+    # Remove launch agents
+    rm -f "$HOME/Library/LaunchAgents/com.raycast"* 2>/dev/null
+
+    ok "  Raycast removed"
+  else
+    ok "  Raycast not present"
+  fi
+
+  # Bruno (replaced by Hoppscotch)
+  if [[ -d /Applications/Bruno.app ]]; then
+    log "  Uninstalling Bruno..."
+    brew uninstall --cask bruno 2>/dev/null || true
+    rm -rf "$HOME/Library/Application Support/bruno"            "$HOME/Library/Preferences/com.usebruno"* 2>/dev/null
+    ok "  Bruno removed"
+  else
+    ok "  Bruno not present"
+  fi
+
+  # Docker Desktop (replaced by Colima)
+  if [[ -d /Applications/Docker.app ]]; then
+    log "  Uninstalling Docker Desktop (replaced by Colima)..."
+    # Stop Docker first
+    osascript -e 'quit app "Docker"' 2>/dev/null || true
+    sleep 2
+    brew uninstall --cask docker 2>/dev/null || true
+
+    # Remove Docker Desktop data (keep Docker config in ~/.docker)
+    rm -rf "$HOME/Library/Containers/com.docker.docker"            "$HOME/Library/Application Support/Docker Desktop"            "$HOME/Library/Caches/com.docker.docker"            "$HOME/Library/Group Containers/group.com.docker"            "$HOME/Library/Preferences/com.docker.docker.plist" 2>/dev/null
+
+    # Privileged helper
+    sudo rm -f /Library/PrivilegedHelperTools/com.docker.vmnetd 2>/dev/null
+    sudo rm -f /Library/LaunchDaemons/com.docker.vmnetd.plist 2>/dev/null
+
+    ok "  Docker Desktop removed (use 'colima start' instead)"
+  else
+    ok "  Docker Desktop not present"
+  fi
+
+  # OrbStack (proprietary, replaced by Colima)
+  if [[ -d /Applications/OrbStack.app ]]; then
+    log "  Uninstalling OrbStack..."
+    osascript -e 'quit app "OrbStack"' 2>/dev/null || true
+    sleep 2
+    brew uninstall --cask orbstack 2>/dev/null || true
+    rm -rf "$HOME/.orbstack"            "$HOME/Library/Application Support/dev.kdrag0n.MacVirt"            "$HOME/Library/Group Containers/HUAQ24HBR6.dev.kdrag0n.MacVirt" 2>/dev/null
+    ok "  OrbStack removed"
+  fi
+
+  log "OSS cleanup complete"
 }
 
 # =============================================================================
@@ -391,6 +477,7 @@ main() {
   phase_check
   run_phase "xcode-clt"      phase_xcode
   run_phase "homebrew"       phase_homebrew
+  run_phase "oss-cleanup"    phase_oss_cleanup
   run_phase "brewfile"       phase_brewfile
   run_phase "ohmyzsh"        phase_zsh
   run_phase "scm-breeze"     phase_scm_breeze

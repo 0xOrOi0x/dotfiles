@@ -1,108 +1,114 @@
 # =============================================================================
-# Brewfile — 0xOrOi0x/dotfiles · Multi-Agent Dev Stack v3.1
+# Brewfile — 0xOrOi0x/dotfiles · 100% OSS Multi-Agent Stack v3.3
 # -----------------------------------------------------------------------------
-# Standalone usage: brew bundle install --file=./Brewfile
-# Auto-installed by bootstrap.sh
+# All tools are verified OSS (excluding AI agents which user supplies)
 # =============================================================================
 
 # Taps
 tap "homebrew/bundle"
 tap "homebrew/services"
-tap "nikitabobko/tap"           # AeroSpace
+tap "nikitabobko/tap"
 
 # =============================================================================
-# 🐚 Shell & Terminal Core
+# 🐚 Shell & Terminal Core (all OSS)
 # =============================================================================
-brew "zsh"
-brew "tmux"
-brew "starship"
-brew "zoxide"
-brew "atuin"                     # encrypted shell history sync
-brew "direnv"                    # per-project env
-brew "mise"                      # runtime version manager
+brew "zsh"                       # MIT
+brew "tmux"                      # ISC
+brew "starship"                  # ISC
+brew "zoxide"                    # MIT
+brew "atuin"                     # MIT
+brew "direnv"                    # MIT
+brew "mise"                      # MIT
 
 # =============================================================================
-# 🛠️ Modern CLI Replacements
+# 🛠️ Modern CLI (all OSS, all Rust/Go)
 # =============================================================================
-brew "lsd"
-brew "bat"
-brew "fd"
-brew "ripgrep"
-brew "fzf"
-brew "git-delta"
-brew "btop"
-brew "dust"
-brew "duf"
-brew "fastfetch"
-brew "neovim"
-brew "lazygit"
-brew "navi"
-brew "glow"
-brew "tokei"
-brew "hyperfine"
-brew "jless"
-brew "httpie"
-brew "gron"
-brew "jq"
-brew "yq"
-brew "watch"
+brew "lsd"                       # Apache-2.0
+brew "bat"                       # Apache-2.0/MIT
+brew "fd"                        # Apache-2.0/MIT
+brew "ripgrep"                   # Unlicense/MIT
+brew "fzf"                       # MIT
+brew "git-delta"                 # MIT
+brew "btop"                      # Apache-2.0
+brew "dust"                      # Apache-2.0
+brew "duf"                       # MIT
+brew "fastfetch"                 # MIT
+brew "neovim"                    # Apache-2.0
+brew "lazygit"                   # MIT
+brew "navi"                      # Apache-2.0
+brew "glow"                      # MIT
+brew "tokei"                     # Apache-2.0/MIT
+brew "hyperfine"                 # Apache-2.0/MIT
+brew "jless"                     # MIT
+brew "httpie"                    # BSD-3
+brew "gron"                      # MIT
+brew "jq"                        # MIT
+brew "yq"                        # MIT
+brew "watch"                     # GPL-2
 
 # =============================================================================
-# 🌿 Git & GitHub
+# 🌿 Git & GitHub (all OSS)
 # =============================================================================
-brew "git"
-brew "gh"
-brew "git-lfs"
-brew "gnupg"
+brew "git"                       # GPL-2
+brew "gh"                        # MIT
+brew "git-lfs"                   # MIT
+brew "gnupg"                     # GPL-3
 
 # =============================================================================
-# 🤖 AI Agents (Gemini via brew; Claude/Codex via bootstrap)
+# 🔐 Secrets & SSH (OSS replacements for 1Password)
 # =============================================================================
-brew "gemini-cli"
+brew "bitwarden-cli"             # GPL-3 (replaces op CLI)
 
 # =============================================================================
 # 📜 Dotfiles & Reproducibility
 # =============================================================================
-brew "chezmoi"
+brew "chezmoi"                   # MIT
 
 # =============================================================================
-# 🎨 Documentation & Presentation
+# 🎨 Documentation
 # =============================================================================
-brew "marp-cli"
-brew "pandoc"
-brew "mermaid-cli"
+brew "marp-cli"                  # MIT
+brew "pandoc"                    # GPL-2
+brew "mermaid-cli"               # MIT
+
+# =============================================================================
+# 🐳 Containers (100% OSS — Docker Engine + Colima)
+# =============================================================================
+brew "docker"                    # Apache-2.0 (CLI only, OSS)
+brew "docker-compose"            # Apache-2.0
+brew "colima"                    # MIT (replaces Docker Desktop GUI)
 
 # =============================================================================
 # 🔧 System Utilities
 # =============================================================================
-brew "mas"
-brew "trash"
-brew "wget"
-brew "coreutils"
-brew "tree"
+brew "mas"                       # MIT
+brew "trash"                     # MIT
+brew "wget"                      # GPL-3
+brew "coreutils"                 # GPL-3
+brew "tree"                      # GPL-2
 
 # =============================================================================
-# 📦 Build & Runtimes (mise overrides; these are fallbacks)
+# 📦 Build & Runtimes
 # =============================================================================
-brew "bun"
-brew "pnpm"
-brew "uv"
+brew "bun"                       # MIT (Apple Silicon only, removed for Intel)
+brew "pnpm"                      # MIT
+brew "uv"                        # MIT
 
 # =============================================================================
-# 👻 GUI Apps (Casks)
+# 👻 GUI Apps (verified OSS or true freeware)
 # =============================================================================
-cask "ghostty"                   # GPU-accelerated terminal
-cask "aerospace"                 # i3-like tiling WM
-cask "raycast"                   # Spotlight + AI launcher
-cask "karabiner-elements"        # keyboard remapping
-cask "orbstack"                  # Docker Desktop alternative
-cask "1password"                 # password manager
-cask "1password-cli"             # op CLI
-cask "bruno"                     # API testing (git-friendly)
-cask "visual-studio-code"
+cask "ghostty"                   # MIT (OSS)
+cask "aerospace"                 # MIT (OSS)
+# Raycast removed - replaced by Hammerspoon + Alfred
+cask "alfred"                    # Freeware (free tier, no Powerpack)
+cask "hammerspoon"               # MIT (OSS) - Lua scripting
+cask "karabiner-elements"        # Public Domain (OSS)
+cask "bitwarden"                 # GPL-3 (replaces 1Password)
+cask "hoppscotch"                # MIT (replaces Bruno)
+cask "visual-studio-code"        # User chose to keep (MIT codebase, MS binary)
 
 # =============================================================================
-# 🔤 Fonts (Nerd + CJK fallback)
+# 🔤 Fonts (all OSS or freeware)
 # =============================================================================
 cask "font-hack-nerd-font"
 cask "font-jetbrains-mono-nerd-font"
