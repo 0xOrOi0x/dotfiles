@@ -2,8 +2,6 @@
 # Brewfile.intel — Intel Mac OSS-only (auto-selected for x86_64)
 # =============================================================================
 
-tap "homebrew/bundle"
-tap "homebrew/services"
 tap "nikitabobko/tap"
 
 # === Shell & Terminal Core ===

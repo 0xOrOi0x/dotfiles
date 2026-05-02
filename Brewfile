@@ -1,12 +1,10 @@
 # =============================================================================
-# Brewfile — 0xOrOi0x/dotfiles · 100% OSS Multi-Agent Stack v3.3
+# Brewfile — 0xOrOi0x/dotfiles · 100% OSS Multi-Agent Stack v3.4
 # -----------------------------------------------------------------------------
 # All tools are verified OSS (excluding AI agents which user supplies)
 # =============================================================================
 
 # Taps
-tap "homebrew/bundle"
-tap "homebrew/services"
 tap "nikitabobko/tap"
 
 # =============================================================================

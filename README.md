@@ -1,5 +1,30 @@
 # 🚀 dotfiles
 
+## 🆕 What's New in v3.4 (May 2026)
+
+**진짜 한 줄 설치 가능 — 9가지 알려진 버그 모두 영구 fix**
+
+| Bug | Status |
+|:---|:---:|
+| Brewfile: `homebrew/bundle` deprecated tap | ✅ 제거 |
+| Brewfile: `homebrew/services` deprecated tap | ✅ 제거 |
+| Brewfile: `aerospace` brew → cask | ✅ Fixed |
+| Brewfile: `gemini-cli` (npm only) | ✅ 제거 (자동 npm install) |
+| Brewfile.intel: `bun` Apple Silicon only | ✅ Intel에서 제거 |
+| verify.sh: Intel CPU `(R)` paren | ✅ eval → 명시적 할당 |
+| .zshrc: `plan` alias 충돌 | ✅ alias 제거 |
+| .zshrc: `cat` alias to `bat` | ✅ `/bin/cat` 사용 |
+| .zshrc: `~/.local/bin` PATH 누락 | ✅ 자동 추가 |
+
+**Bootstrap self-heal**: 
+- chezmoi data file 자동 생성 (init silent fail 시)
+- Node.js 자동 설치 (mise → brew fallback)
+- Critical packages retry (chezmoi/tmux/git 등)
+- Gemini CLI 자동 npm install
+
+**결과**: Intel + Apple Silicon 모두 진짜 한 줄로 설치 가능.
+
+
 > **100% OSS Multi-Agent Dev Environment** for macOS · Single-line setup
 > Auto-detects Apple Silicon (M1~M5+) **and** Intel Macs
 > Ghostty · tmux · Claude Code · Codex CLI · Gemini CLI · AeroSpace

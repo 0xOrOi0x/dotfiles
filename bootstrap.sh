@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# 🚀 bootstrap.sh — Multi-Agent Dev Environment v3.1 (repo-aware)
+# 🚀 bootstrap.sh — Multi-Agent Dev Environment v3.4 (repo-aware)
 # -----------------------------------------------------------------------------
 # Called by `install` after repo is cloned to $DOTFILES_DIR
 # Idempotent · Resumable · Verified
@@ -103,7 +103,7 @@ print_banner() {
 
 ${C_MAGENTA}${C_BOLD}
   ╭───────────────────────────────────────────────────────╮
-  │   🚀 0xOrOi0x/dotfiles · Bootstrap v3.3               │
+  │   🚀 0xOrOi0x/dotfiles · Bootstrap v3.4               │
   │   Ghostty + tmux + Claude/Codex/Gemini + AeroSpace   │
   ╰───────────────────────────────────────────────────────╯
 ${C_RESET}
@@ -282,22 +282,47 @@ phase_oss_cleanup() {
 # Phase 3: Brewfile install
 # =============================================================================
 phase_brewfile() {
-  # Auto-select Brewfile based on architecture
-  local brewfile="$DOTFILES_DIR/Brewfile"
-  local eta="10-20 min"
+  local arch=$(uname -m)
+  local brewfile
 
-  if [[ "$(uname -m)" != "arm64" ]] && [[ -f "$DOTFILES_DIR/Brewfile.intel" ]]; then
-    brewfile="$DOTFILES_DIR/Brewfile.intel"
-    eta="25-40 min on Intel"
-    log "Intel Mac detected → using Brewfile.intel"
-    log "Note: OrbStack replaced with Docker Desktop"
+  # Apple Silicon vs Intel 자동 선택
+  if [[ "$arch" == "arm64" ]]; then
+    brewfile="$DOTFILES_DIR/Brewfile"
+    log "Apple Silicon detected → using Brewfile"
   else
-    log "Apple Silicon → using Brewfile (full)"
+    brewfile="$DOTFILES_DIR/Brewfile.intel"
+    log "Intel Mac detected → using Brewfile.intel"
   fi
 
-  log "Installing from $(basename "$brewfile") (${eta})..."
-  brew bundle install --file="$brewfile" --no-lock || \
-    warn "Some packages may have failed — review output above"
+  # Brewfile 존재 확인
+  [[ -f "$brewfile" ]] || die "Brewfile not found: $brewfile"
+
+  log "Installing packages from $(basename $brewfile)..."
+  if brew bundle install --file="$brewfile" 2>&1 | tee "$LOG_FILE.brewfile"; then
+    ok "Brewfile install complete"
+  else
+    warn "Brewfile install had issues — checking critical packages"
+  fi
+
+  # SELF-HEAL: ensure critical packages are installed
+  local critical=(chezmoi tmux starship git gh atuin direnv mise lsd bat fd ripgrep fzf)
+  local missing=()
+
+  for pkg in "${critical[@]}"; do
+    if ! brew list --formula "$pkg" &>/dev/null && ! command -v "$pkg" &>/dev/null; then
+      missing+=("$pkg")
+    fi
+  done
+
+  if [[ ${#missing[@]} -gt 0 ]]; then
+    log "Installing missing critical packages: ${missing[*]}"
+    for pkg in "${missing[@]}"; do
+      brew install "$pkg" 2>&1 | tail -2 || warn "Failed: $pkg"
+    done
+    hash -r
+  fi
+
+  ok "Brewfile phase complete"
 }
 
 # =============================================================================
@@ -344,9 +369,29 @@ phase_scm_breeze() {
 # Phase 6: AI agents
 # =============================================================================
 phase_ai_agents() {
-  if command -v mise &>/dev/null; then
-    eval "$(mise activate bash)"
-    mise use --global node@24 || true
+  # Self-heal: ensure Node.js is available (mise → brew fallback)
+  if ! command -v npm &>/dev/null; then
+    log "Node.js not found — installing..."
+
+    if command -v mise &>/dev/null; then
+      eval "$(mise activate bash)" 2>/dev/null || true
+      mise install node@24 2>/dev/null || true
+      mise use --global node@24 2>/dev/null || true
+      hash -r
+    fi
+
+    if ! command -v npm &>/dev/null; then
+      brew install node 2>&1 | tail -3 || true
+      hash -r
+    fi
+
+    if ! command -v npm &>/dev/null; then
+      err "Failed to install Node.js. Run: brew install node"
+      return 1
+    fi
+    ok "Node.js: $(node --version)"
+  else
+    ok "Node.js: $(node --version)"
   fi
 
   if ! command -v claude &>/dev/null; then
@@ -363,14 +408,31 @@ phase_ai_agents() {
     ok "Codex CLI installed"
   fi
 
-  command -v gemini &>/dev/null && ok "Gemini CLI installed (via Brewfile)"
+  # Gemini CLI (npm package, install if missing)
+  if ! command -v gemini &>/dev/null; then
+    log "Installing Gemini CLI (npm)..."
+    npm install -g @google/gemini-cli 2>&1 | tail -3 || warn "Gemini install failed (continuing)"
+    hash -r
+  fi
+  command -v gemini &>/dev/null && ok "Gemini CLI" || warn "Gemini not installed (optional)"
+
+  return 0  # gemini optional — never fail phase
 }
 
 # =============================================================================
 # Phase 7: chezmoi apply (manage all dotfiles)
 # =============================================================================
 phase_chezmoi() {
-  command -v chezmoi &>/dev/null || die "chezmoi not found (Brewfile should have installed it)"
+  # Self-heal: install chezmoi if missing
+  if ! command -v chezmoi &>/dev/null; then
+    warn "chezmoi not found — installing now"
+    brew install chezmoi || die "Failed to install chezmoi. Run: brew install chezmoi"
+    hash -r
+  fi
+  ok "chezmoi: $(chezmoi --version | head -1)"
+
+  # Ensure machine-detect.sh is executable
+  chmod +x "$DOTFILES_DIR/scripts/machine-detect.sh" 2>/dev/null || true
 
   # Backup existing dotfiles
   local backup_dir="$HOME/.bootstrap-backup-$(date +%Y%m%d-%H%M%S)"
@@ -381,11 +443,45 @@ phase_chezmoi() {
     fi
   done
 
-  # Initialize chezmoi pointing to the repo (uses .chezmoiroot inside)
+  # Initialize chezmoi pointing to the repo
   if [[ ! -d "$HOME/.local/share/chezmoi" ]] || \
      [[ -z "$(ls -A "$HOME/.local/share/chezmoi" 2>/dev/null)" ]]; then
     log "Initializing chezmoi from $DOTFILES_DIR..."
-    chezmoi init --source "$DOTFILES_DIR"
+    chezmoi init --source "$DOTFILES_DIR" 2>/dev/null || true
+  fi
+
+  # SELF-HEAL: If chezmoi init didn't create data file, generate from machine-detect
+  if [[ ! -f "$HOME/.config/chezmoi/chezmoi.toml" ]]; then
+    warn "chezmoi data file missing — auto-generating"
+    mkdir -p "$HOME/.config/chezmoi"
+
+    local detect="$DOTFILES_DIR/scripts/machine-detect.sh"
+    local d_machine d_arch d_chip d_ram d_profile d_ai
+    d_machine=$("$detect" machine_id 2>/dev/null || echo "personal")
+    d_arch=$("$detect" arch 2>/dev/null || uname -m)
+    d_chip=$("$detect" chip 2>/dev/null || sysctl -n machdep.cpu.brand_string 2>/dev/null || echo "unknown")
+    d_ram=$("$detect" ram_gb 2>/dev/null || echo "8")
+    d_profile=$("$detect" profile 2>/dev/null || echo "lite")
+    d_ai=$("$detect" ai_concurrent 2>/dev/null || echo "2")
+    local is_arm=false
+    [[ "$d_arch" == "arm64" ]] && is_arm=true
+
+    cat > "$HOME/.config/chezmoi/chezmoi.toml" <<TOML
+[data]
+    name = "박승호"
+    email = "0xOrOi0x@users.noreply.github.com"
+    github_user = "0xOrOi0x"
+    machine = "${d_machine}"
+    arch = "${d_arch}"
+    chip = "${d_chip}"
+    ram_gb = "${d_ram}"
+    profile = "${d_profile}"
+    ai_concurrent = "${d_ai}"
+    is_apple_silicon = ${is_arm}
+TOML
+    ok "Auto-generated chezmoi data (machine=${d_machine}, profile=${d_profile})"
+  else
+    ok "chezmoi data file present"
   fi
 
   log "Applying dotfiles via chezmoi..."

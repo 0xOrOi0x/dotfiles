@@ -10,6 +10,10 @@
 [[ -f /opt/homebrew/bin/brew ]] && eval "$(/opt/homebrew/bin/brew shellenv)"
 [[ -f /usr/local/bin/brew     ]] && eval "$(/usr/local/bin/brew shellenv)"
 
+# ─── Claude Code & local PATH (auto-detected) ──────────────────────────────
+[[ -d "$HOME/.local/bin"    ]] && export PATH="$HOME/.local/bin:$PATH"
+[[ -d "$HOME/.claude/local" ]] && export PATH="$HOME/.claude/local:$PATH"
+
 {{ if not .is_apple_silicon -}}
 # ─── Intel Mac specific paths ───────────────────────────────────────────────
 # Docker Desktop CLI (replaces OrbStack on Intel)
@@ -144,10 +148,10 @@ alias dot-verify='bash ~/.dotfiles/scripts/verify.sh'
 
 {{ if eq .profile "full" -}}
 # ─── 🪶 FULL profile aliases ───────────────────────────────────────────────
-alias plan='claude -p "Read AGENTS.md and create plan.md. Use Plan Mode."'
+# Note: 'plan' defined as function below
 {{ else -}}
 # ─── 💪 LITE profile aliases (Intel / low RAM) ─────────────────────────────
-alias plan='claude -p "Read AGENTS.md and create plan.md. Use Plan Mode. Implementation OUT OF SCOPE."'
+# Note: 'plan' defined as function below (covers both profiles)
 alias review-light='gh pr diff $1 | claude -p "Quick architectural review only, brief feedback."'
 {{- end }}
 
@@ -322,7 +326,8 @@ tools() {
 # 🆕 dot-info — Machine profile at a glance
 # =============================================================================
 dot-info() {
-  cat <<INFO
+  # Use /bin/cat to bypass 'cat' → 'bat' alias
+  /bin/cat <<INFO
 {{ if .is_apple_silicon }}🪶{{ else }}💪{{ end }} Machine: ${DOTFILES_MACHINE}
    ├─ Chip:      ${DOTFILES_CHIP}
    ├─ Arch:      ${DOTFILES_ARCH}
@@ -333,14 +338,14 @@ dot-info() {
 🤖 AI agents:    ${CLAUDE_MAX_CONCURRENT} concurrent max
 {{ if .is_apple_silicon -}}
 📦 Brewfile:     Brewfile (Apple Silicon)
-🐳 Container:    OrbStack
+🐳 Container:    Colima
 🪟 Window mgr:   AeroSpace (full)
 {{ else -}}
 📦 Brewfile:     Brewfile.intel
-🐳 Container:    Docker Desktop
+🐳 Container:    Colima
 🪟 Window mgr:   AeroSpace (Intel mode)
 {{ end -}}
-🚀 Active agents: $(ls "$AGENTS_HOME/status"/*.md 2>/dev/null | wc -l | tr -d ' ')
+🚀 Active agents: $(ls "$AGENTS_HOME/status"/ 2>/dev/null | grep -c "\.md$" || echo 0)
 
 💡 Run 'sysmon' for resource usage
 INFO
@@ -365,7 +370,7 @@ sysmon() {
     power_source="Battery 🔋"
   fi
 
-  cat <<MON
+  /bin/cat <<MON
 🌡  System Monitor (${DOTFILES_MACHINE})
    🧠 Memory:        ${mem_used} / ${DOTFILES_RAM_GB} GB (${mem_pct}%)
    🤖 Active agents: ${active_agents}

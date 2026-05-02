@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Health check v3.2 — verify all key tools + machine profile
+# Health check v3.4 — verify all key tools + machine profile
 set -uo pipefail
 
 C_GREEN='\033[0;32m'
@@ -10,12 +10,18 @@ C_BOLD='\033[1m'
 C_RESET='\033[0m'
 
 # Show machine profile first
-echo "━━━ Health Check v3.2 ━━━"
+echo "━━━ Health Check v3.4 ━━━"
 echo ""
 
 if [[ -x "$HOME/.dotfiles/scripts/machine-detect.sh" ]]; then
   printf "${C_BLUE}🏷  Machine Profile${C_RESET}\n"
-  eval "$("$HOME/.dotfiles/scripts/machine-detect.sh" all)"
+  MACHINE_ID=$("$HOME/.dotfiles/scripts/machine-detect.sh" machine_id 2>/dev/null)
+  CHIP=$("$HOME/.dotfiles/scripts/machine-detect.sh" chip 2>/dev/null)
+  ARCH=$("$HOME/.dotfiles/scripts/machine-detect.sh" arch 2>/dev/null)
+  RAM_GB=$("$HOME/.dotfiles/scripts/machine-detect.sh" ram_gb 2>/dev/null)
+  MACOS_VERSION=$("$HOME/.dotfiles/scripts/machine-detect.sh" macos_version 2>/dev/null)
+  PROFILE=$("$HOME/.dotfiles/scripts/machine-detect.sh" profile 2>/dev/null)
+  AI_CONCURRENT=$("$HOME/.dotfiles/scripts/machine-detect.sh" ai_concurrent 2>/dev/null)
   printf "  Machine ID:    ${C_BOLD}%s${C_RESET}\n" "$MACHINE_ID"
   printf "  Chip:          %s\n" "$CHIP"
   printf "  Arch:          %s\n" "$ARCH"
